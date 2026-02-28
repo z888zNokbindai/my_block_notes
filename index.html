@@ -2,1301 +2,795 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>Block Note ✦</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-/* ══════════════════════════════════════════
-   TOKENS
-══════════════════════════════════════════ */
 :root{
-  --ink:#0a0a0f;
-  --ink2:#111118;
-  --paper:#16161f;
-  --panel:#1e1e2a;
-  --border:#2e2e3e;
-  --border2:#3a3a50;
-  --canvas:#f4f3ef;
-  --grid:#e8e6df;
-  --grid2:#d8d5cc;
-  --accent:#ff4d5e;
-  --accent2:#ff8c42;
-  --blue:#4ea8ff;
-  --green:#3ecf8e;
-  --purple:#a78bfa;
-  --yellow:#fbbf24;
-  --white:#ffffff;
-  --muted:#7a7a9a;
-  --shadow: 0 4px 24px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.12);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.16);
+  --ink:#0a0a0f;--ink2:#111118;--panel:#1e1e2a;
+  --border:#2e2e3e;--border2:#3a3a50;
+  --canvas:#f4f3ef;--grid:#e8e6df;--grid2:#d5d2c8;
+  --accent:#ff4d5e;--accent2:#ff8c42;
+  --blue:#4ea8ff;--green:#3ecf8e;--purple:#a78bfa;--yellow:#fbbf24;
+  --muted:#7a7a9a;--white:#fff;
+  --sb:env(safe-area-inset-bottom,0px);
+  --st:env(safe-area-inset-top,0px);
+  --topbar:54px;--botbar:64px;
+  --sh:0 4px 20px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.1);
+  --shlg:0 12px 40px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.14);
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Syne',sans-serif;
-  background:var(--ink);
-  color:var(--white);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  user-select:none;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;width:100%;overflow:hidden;
+  font-family:'Syne',sans-serif;background:var(--ink);color:var(--white);
+  user-select:none;-webkit-user-select:none;}
 
-/* ══════════════════════════════════════════
-   TOOLBAR
-══════════════════════════════════════════ */
-#toolbar{
-  display:flex;align-items:center;gap:6px;
-  padding:10px 16px;
-  background:var(--ink2);
-  border-bottom:1px solid var(--border);
-  flex-shrink:0;
-  flex-wrap:wrap;
-  z-index:100;
+/* ─ TOP BAR ─ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:calc(var(--topbar) + var(--st));
+  padding-top:var(--st);
+  background:var(--ink2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:var(--st) 10px 0;gap:6px;
 }
-.logo{
-  font-size:18px;font-weight:800;letter-spacing:-0.5px;
-  color:var(--white);margin-right:10px;
-  display:flex;align-items:center;gap:6px;
-}
-.logo-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--accent);
-  box-shadow:0 0 10px var(--accent);
-}
-.sep{width:1px;height:30px;background:var(--border);margin:0 4px}
-.tbtn{
-  display:flex;align-items:center;gap:5px;
-  padding:6px 12px;border-radius:7px;border:none;
-  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
-  cursor:pointer;transition:all .15s ease;letter-spacing:.3px;
-  white-space:nowrap;
-}
-.tbtn:hover{transform:translateY(-1px);filter:brightness(1.12)}
-.tbtn:active{transform:translateY(0)}
-.btn-red{background:var(--accent);color:#fff}
-.btn-orange{background:var(--accent2);color:#fff}
-.btn-blue{background:var(--blue);color:#0a0a18}
-.btn-green{background:var(--green);color:#0a1810}
-.btn-purple{background:var(--purple);color:#0a0820}
-.btn-dark{background:var(--panel);color:var(--white);border:1px solid var(--border2)}
-.btn-yellow{background:var(--yellow);color:#1a0f00}
-.tbtn.active-connect{
-  background:var(--accent)!important;color:#fff!important;
-  box-shadow:0 0 18px rgba(255,77,94,.5);
-  animation:pulse-btn .9s ease-in-out infinite;
-}
-@keyframes pulse-btn{0%,100%{box-shadow:0 0 14px rgba(255,77,94,.4)}50%{box-shadow:0 0 26px rgba(255,77,94,.75)}}
+.logo{font-size:17px;font-weight:800;letter-spacing:-.5px;
+  display:flex;align-items:center;gap:6px;flex:1;padding-left:4px;}
+.logo-dot{width:7px;height:7px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 8px var(--accent);}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border2);
+  background:var(--panel);color:var(--white);font-size:16px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.icon-btn:active{transform:scale(.9)}
+#page-tab{display:flex;align-items:center;gap:5px;padding:0 10px;height:38px;
+  border-radius:10px;border:1px solid var(--border2);background:var(--panel);
+  color:var(--white);font-size:12px;font-weight:700;cursor:pointer;
+  font-family:'Syne',sans-serif;max-width:120px;}
+#page-tab:active{transform:scale(.95)}
+#page-tab-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-#status-bar{
-  margin-left:auto;
-  font-family:'DM Mono',monospace;font-size:11px;
-  color:var(--muted);padding:4px 10px;
-  border-radius:6px;background:var(--panel);
-  border:1px solid var(--border);
-  white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;
-}
-
-/* ══════════════════════════════════════════
-   MAIN LAYOUT
-══════════════════════════════════════════ */
-#main{display:flex;flex:1;overflow:hidden}
-
-/* ══════════════════════════════════════════
-   SIDEBAR
-══════════════════════════════════════════ */
-#sidebar{
-  width:188px;flex-shrink:0;
-  background:var(--ink2);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  overflow:hidden;
-}
-#sidebar-header{
-  padding:14px 14px 8px;
-  font-size:10px;font-weight:700;letter-spacing:1.8px;
-  color:var(--muted);text-transform:uppercase;
-  border-bottom:1px solid var(--border);
-}
-#page-list{flex:1;overflow-y:auto;padding:8px 8px;}
-#page-list::-webkit-scrollbar{width:4px}
-#page-list::-webkit-scrollbar-track{background:transparent}
-#page-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-
-.page-item{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 10px;border-radius:8px;
-  cursor:pointer;transition:all .15s ease;
-  margin-bottom:3px;position:relative;
-}
-.page-item:hover{background:var(--panel)}
-.page-item.active{
-  background:linear-gradient(120deg, rgba(78,168,255,.15), rgba(167,139,250,.08));
-  border:1px solid rgba(78,168,255,.25);
-}
-.page-item.active .page-name{color:var(--blue);font-weight:700}
-.page-indicator{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--muted);flex-shrink:0;transition:.15s;
-}
-.page-item.active .page-indicator{
-  background:var(--blue);
-  box-shadow:0 0 8px var(--blue);
-}
-.page-name{
-  font-size:12px;font-weight:600;color:#ccc;
-  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.page-count{
-  font-size:9px;color:var(--muted);
-  font-family:'DM Mono',monospace;
-}
-#sidebar-actions{
-  padding:10px 8px;
-  border-top:1px solid var(--border);
-  display:flex;flex-direction:column;gap:5px;
-}
-.side-btn{
-  width:100%;padding:7px 10px;border-radius:7px;
-  border:none;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
-  cursor:pointer;transition:all .15s;text-align:left;
-  display:flex;align-items:center;gap:6px;
-}
-.side-btn:hover{filter:brightness(1.15);transform:translateX(2px)}
-
-/* ══════════════════════════════════════════
-   CANVAS CONTAINER
-══════════════════════════════════════════ */
+/* ─ CANVAS ─ */
 #canvas-wrap{
-  flex:1;overflow:auto;position:relative;
+  position:fixed;
+  top:calc(var(--topbar) + var(--st));left:0;right:0;
+  bottom:calc(var(--botbar) + var(--sb));
+  overflow:auto;-webkit-overflow-scrolling:touch;
   background:var(--canvas);
-  cursor:default;
-}
-#canvas-wrap::-webkit-scrollbar{width:8px;height:8px}
-#canvas-wrap::-webkit-scrollbar-track{background:#e8e6df}
-#canvas-wrap::-webkit-scrollbar-thumb{background:#c5c0b5;border-radius:99px}
-#svg-layer{
-  position:absolute;top:0;left:0;
-  pointer-events:none;z-index:1;
-}
-#block-layer{
-  position:absolute;top:0;left:0;
-  width:3600px;height:2800px;
-  z-index:2;
-}
-
-/* ══════════════════════════════════════════
-   GRID (CSS background)
-══════════════════════════════════════════ */
-#canvas-wrap{
   background-image:
-    linear-gradient(var(--grid2) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid2) 1px, transparent 1px),
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size:200px 200px, 200px 200px, 40px 40px, 40px 40px;
+    linear-gradient(var(--grid2) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid2) 1px,transparent 1px),
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:160px 160px,160px 160px,32px 32px,32px 32px;
 }
+#canvas-inner{position:relative;width:2800px;height:2400px;}
+#svg-layer{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible;}
+#block-layer{position:absolute;inset:0;z-index:2;}
 
-/* ══════════════════════════════════════════
-   BLOCKS
-══════════════════════════════════════════ */
+/* ─ BLOCKS ─ */
 .block{
-  position:absolute;
-  width:230px;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:var(--shadow);
-  cursor:grab;
-  transition:box-shadow .2s ease, transform .1s ease;
-  border:2px solid transparent;
-  background:#fff;
+  position:absolute;width:200px;border-radius:14px;
+  background:#fff;box-shadow:var(--sh);
+  border:2.5px solid transparent;touch-action:none;
 }
-.block:hover{
-  box-shadow:var(--shadow-lg);
-  transform:translateY(-1px);
-}
-.block.selected{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(255,77,94,.25), var(--shadow-lg);
-  transform:translateY(-2px);
-}
-.block.connect-src{
-  border-color:var(--yellow);
-  box-shadow:0 0 0 3px rgba(251,191,36,.35), var(--shadow-lg);
-}
-.block:active{cursor:grabbing;transform:translateY(-2px) scale(1.01)}
-
-.block-header{
-  padding:9px 12px;
-  display:flex;align-items:center;gap:6px;
-  position:relative;
-}
-.block-type-icon{font-size:13px;flex-shrink:0}
-.block-title{
-  font-size:11px;font-weight:700;color:#fff;
-  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:'Syne',sans-serif;
-}
-.block-order{
-  width:22px;height:22px;border-radius:50%;
-  background:rgba(255,255,255,.22);
+.block.selected{border-color:var(--accent);box-shadow:0 0 0 4px rgba(255,77,94,.2),var(--shlg);}
+.block.connect-src{border-color:var(--yellow);box-shadow:0 0 0 4px rgba(251,191,36,.3),var(--shlg);}
+.bh{padding:10px 12px;display:flex;align-items:center;gap:7px;}
+.bi{font-size:14px;flex-shrink:0}
+.bt{font-size:11px;font-weight:700;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bb2{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.22);
   display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-weight:800;color:#fff;font-family:'DM Mono',monospace;
-  flex-shrink:0;
-}
-.block-body{
-  padding:10px 12px 12px;
-  background:#fff;
-  min-height:64px;
-}
-.block-text{
-  font-size:12px;line-height:1.55;color:#2a2a3a;
-  font-family:'DM Mono',monospace;
-  word-break:break-word;
-  display:-webkit-box;-webkit-line-clamp:5;
-  -webkit-box-orient:vertical;overflow:hidden;
-}
-.block-img-wrap{
-  width:100%;height:140px;
-  overflow:hidden;border-radius:4px;
-  background:#f0ede6;
-  display:flex;align-items:center;justify-content:center;
-}
-.block-img-wrap img{
-  width:100%;height:100%;object-fit:cover;
-}
-.block-img-name{
-  font-size:10px;color:#888;font-family:'DM Mono',monospace;
-  margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
+  font-size:10px;font-weight:800;color:#fff;font-family:'DM Mono',monospace;flex-shrink:0;}
+.bdy{padding:10px 12px 14px;background:#fff;min-height:52px;}
+.btxt{font-size:12px;line-height:1.6;color:#2a2a3a;font-family:'DM Mono',monospace;
+  word-break:break-word;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;}
+.bimg{width:100%;height:120px;border-radius:6px;background:#eeeae0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;}
+.bimg img{width:100%;height:100%;object-fit:cover;}
+.bimgname{font-size:10px;color:#999;font-family:'DM Mono',monospace;margin-top:6px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.type-text .bh{background:linear-gradient(135deg,#4ea8ff,#7b68ee);}
+.type-image .bh{background:linear-gradient(135deg,#3ecf8e,#2db77b);}
+.port{position:absolute;width:20px;height:20px;border-radius:50%;
+  background:#fff;border:2.5px solid currentColor;z-index:5;touch-action:none;}
+.port-n{top:-10px;left:calc(50% - 10px)}
+.port-s{bottom:-10px;left:calc(50% - 10px)}
+.port-w{left:-10px;top:calc(50% - 10px)}
+.port-e{right:-10px;top:calc(50% - 10px)}
+.type-text .port{color:var(--blue)}.type-image .port{color:var(--green)}
 
-/* Text block header */
-.block.type-text .block-header{background:linear-gradient(135deg,#4ea8ff,#7b68ee)}
-/* Image block header */
-.block.type-image .block-header{background:linear-gradient(135deg,#3ecf8e,#2db77b)}
+/* ─ ACTION BAR (floats above canvas when block selected) ─ */
+#action-bar{
+  position:fixed;top:calc(var(--topbar) + var(--st) + 8px);left:50%;
+  transform:translateX(-50%);
+  background:var(--ink2);border:1px solid var(--border2);border-radius:14px;
+  padding:6px 8px;display:none;align-items:center;gap:5px;
+  z-index:190;box-shadow:var(--shlg);white-space:nowrap;
+  animation:pop .2s cubic-bezier(.34,1.56,.64,1);
+}
+#action-bar.show{display:flex}
+@keyframes pop{from{transform:translateX(-50%) scale(.85);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+.ab{padding:8px 10px;border-radius:9px;border:none;font-family:'Syne',sans-serif;
+  font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.ab:active{transform:scale(.9)}
 
-/* ── ports ── */
-.port{
-  position:absolute;width:12px;height:12px;border-radius:50%;
-  background:#fff;border:2.5px solid currentColor;
-  z-index:5;transition:transform .15s, background .15s;
-  cursor:crosshair;
+/* ─ CONNECT BANNER ─ */
+#conn-banner{
+  position:fixed;top:calc(var(--topbar) + var(--st) + 8px);left:50%;
+  transform:translateX(-50%);
+  background:rgba(255,77,94,.95);border-radius:14px;padding:8px 16px;
+  font-size:12px;font-weight:700;color:#fff;z-index:191;
+  display:none;align-items:center;gap:8px;box-shadow:var(--shlg);white-space:nowrap;
 }
-.port:hover{transform:scale(1.5);background:currentColor}
-.port-n{top:-6px;left:calc(50% - 6px)}
-.port-s{bottom:-6px;left:calc(50% - 6px)}
-.port-w{left:-6px;top:calc(50% - 6px)}
-.port-e{right:-6px;top:calc(50% - 6px)}
-.type-text .port{color:var(--blue)}
-.type-image .port{color:var(--green)}
+#conn-banner.show{display:flex}
+#conn-banner button{background:rgba(255,255,255,.25);border:none;color:#fff;
+  border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;
+  cursor:pointer;font-family:'Syne',sans-serif;}
 
-/* ══════════════════════════════════════════
-   SVG CONNECTION LINES
-══════════════════════════════════════════ */
-.conn-path{
-  fill:none;stroke:var(--accent);stroke-width:2.5;
-  stroke-dasharray:none;
-  marker-end:url(#arrow);
-}
-.conn-path-temp{
-  fill:none;stroke:var(--yellow);stroke-width:2;
-  stroke-dasharray:8,4;
-}
-
-/* ══════════════════════════════════════════
-   MODAL / DIALOG
-══════════════════════════════════════════ */
-.overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);
-  z-index:500;display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-  animation:fade-in .15s ease;
-  user-select:text;
-  -webkit-user-select:text;
-}
-@keyframes fade-in{from{opacity:0}to{opacity:1}}
-.modal{
-  background:var(--panel);
-  border:1px solid var(--border2);
-  border-radius:16px;
-  width:540px;max-width:95vw;
-  box-shadow:0 24px 80px rgba(0,0,0,.55);
-  overflow:hidden;
-  animation:slide-up .2s cubic-bezier(.23,1,.32,1);
-}
-@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-header{
-  padding:18px 22px 14px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;
-}
-.modal-title{font-size:16px;font-weight:800;color:#fff}
-.modal-body{padding:20px 22px}
-.modal-footer{
-  padding:14px 22px;border-top:1px solid var(--border);
-  display:flex;justify-content:flex-end;gap:8px;
-}
-textarea.edit-area{
-  width:100%;min-height:180px;
-  background:var(--ink2);color:#fff;
-  border:1px solid var(--border2);border-radius:9px;
-  padding:14px;font-family:'DM Mono',monospace;font-size:13px;
-  line-height:1.6;resize:vertical;outline:none;
-  transition:border-color .15s;
-  user-select:text;
-  -webkit-user-select:text;
-  pointer-events:auto;
-  cursor:text;
-}
-textarea.edit-area:focus{border-color:var(--blue)}
-
-/* ══════════════════════════════════════════
-   SEQUENCE MODAL
-══════════════════════════════════════════ */
-.seq-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;padding-right:4px}
-.seq-list::-webkit-scrollbar{width:4px}
-.seq-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-.seq-item{
-  display:flex;align-items:center;gap:12px;
-  padding:10px 14px;border-radius:9px;
-  background:var(--ink2);border:1px solid var(--border);
-  transition:.15s;
-}
-.seq-item:hover{border-color:var(--border2);background:#181828}
-.seq-num{
-  width:28px;height:28px;border-radius:7px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;font-family:'DM Mono',monospace;
-  flex-shrink:0;
-}
-.seq-icon{font-size:15px;flex-shrink:0}
-.seq-content{font-size:12px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-.conn-item{
-  display:flex;align-items:center;gap:8px;
-  padding:7px 12px;border-radius:7px;
-  background:rgba(255,77,94,.07);border:1px solid rgba(255,77,94,.18);
-  font-size:11px;font-family:'DM Mono',monospace;color:#ddd;
-  margin-bottom:4px;
-}
-
-/* ══════════════════════════════════════════
-   TOAST
-══════════════════════════════════════════ */
-#toast{
-  position:fixed;bottom:22px;right:22px;
-  padding:10px 18px;border-radius:10px;
-  background:var(--panel);color:#fff;
-  border:1px solid var(--border2);
-  font-size:12px;font-weight:600;
-  box-shadow:var(--shadow-lg);
-  opacity:0;transform:translateY(8px);
-  transition:all .25s cubic-bezier(.23,1,.32,1);
-  z-index:999;pointer-events:none;
-  display:flex;align-items:center;gap:8px;
-  max-width:300px;
-}
-#toast.show{opacity:1;transform:translateY(0)}
-
-/* ══════════════════════════════════════════
-   CONTEXT MENU
-══════════════════════════════════════════ */
-#ctx-menu{
-  position:fixed;z-index:800;
-  background:var(--panel);
-  border:1px solid var(--border2);border-radius:10px;
-  box-shadow:var(--shadow-lg);
-  min-width:180px;overflow:hidden;
-  animation:fade-in .1s ease;
-  display:none;
-}
-.ctx-item{
-  padding:9px 16px;font-size:12px;font-weight:600;
-  cursor:pointer;display:flex;align-items:center;gap:8px;
-  color:#ddd;transition:.1s;
-}
-.ctx-item:hover{background:var(--border);color:#fff}
-.ctx-sep{height:1px;background:var(--border);margin:3px 0}
-.ctx-label{padding:7px 16px 2px;font-size:10px;color:var(--muted);letter-spacing:1px}
-
-/* ══════════════════════════════════════════
-   SCROLLBAR CANVAS
-══════════════════════════════════════════ */
-#canvas-wrap{scrollbar-color:#c5c0b5 #e8e6df;scrollbar-width:thin}
-
-/* ══════════════════════════════════════════
-   RESPONSIVE HINT
-══════════════════════════════════════════ */
-#hint-bar{
-  padding:5px 16px;
+/* ─ BOTTOM NAV ─ */
+#botnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  height:calc(var(--botbar) + var(--sb));
+  padding-bottom:var(--sb);
   background:var(--ink2);border-top:1px solid var(--border);
-  font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;
-  letter-spacing:.3px;flex-shrink:0;
-  display:flex;align-items:center;gap:18px;
+  display:flex;align-items:center;padding-left:4px;padding-right:4px;gap:2px;
 }
-.hint-key{
-  background:var(--panel);border:1px solid var(--border2);
-  padding:1px 5px;border-radius:4px;font-size:10px;
-}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:6px 2px;border-radius:12px;border:none;
+  background:transparent;cursor:pointer;transition:.15s;min-height:52px;}
+.nb:active{transform:scale(.88)}
+.nb .ni{font-size:20px;line-height:1}
+.nb .nl{font-size:9px;font-weight:700;font-family:'Syne',sans-serif;letter-spacing:.2px;color:var(--muted)}
+.nb.c-blue .nl,.nb.c-blue .ni{color:var(--blue)}
+.nb.c-orange .nl,.nb.c-orange .ni{color:var(--accent2)}
+.nb.c-red .nl,.nb.c-red .ni{color:var(--accent)}
+.nb.c-purple .nl,.nb.c-purple .ni{color:var(--purple)}
+.nb.c-green .nl,.nb.c-green .ni{color:var(--green)}
+.nb.conn-on{background:rgba(255,77,94,.12);border-radius:12px;animation:pnav .9s ease-in-out infinite;}
+.nb.conn-on .ni,.nb.conn-on .nl{color:var(--accent)!important}
+@keyframes pnav{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 6px rgba(255,77,94,.0)}}
 
-/* ══════════════════════════════════════════
-   ANIMATIONS
-══════════════════════════════════════════ */
-.block-enter{
-  animation:block-pop .3s cubic-bezier(.34,1.56,.64,1) forwards;
+/* ─ FAB ─ */
+#fab{
+  position:fixed;right:16px;
+  bottom:calc(var(--botbar) + var(--sb) + 14px);
+  width:54px;height:54px;border-radius:18px;border:none;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 24px rgba(78,168,255,.4);cursor:pointer;z-index:210;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;
 }
-@keyframes block-pop{
-  from{transform:scale(.7);opacity:0}
-  to{transform:scale(1);opacity:1}
+#fab:active{transform:scale(.86)}
+#fab.open{transform:rotate(45deg);
+  background:linear-gradient(135deg,var(--accent),#c0392b);
+  box-shadow:0 6px 24px rgba(255,77,94,.4);}
+#fab-menu{
+  position:fixed;right:14px;
+  bottom:calc(var(--botbar) + var(--sb) + 82px);
+  display:flex;flex-direction:column;gap:10px;z-index:209;
+  pointer-events:none;opacity:0;transform:translateY(16px) scale(.9);
+  transform-origin:bottom right;transition:all .22s cubic-bezier(.34,1.56,.64,1);
 }
+#fab-menu.open{opacity:1;transform:none;pointer-events:auto}
+.fi{display:flex;align-items:center;gap:10px;justify-content:flex-end;}
+.fl{background:var(--ink2);color:#fff;font-size:12px;font-weight:700;
+  padding:7px 12px;border-radius:10px;border:1px solid var(--border2);
+  white-space:nowrap;box-shadow:var(--sh);}
+.fb{width:46px;height:46px;border-radius:14px;border:none;color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:var(--sh);flex-shrink:0;}
+.fb:active{transform:scale(.86)}
+
+/* ─ DRAWER ─ */
+#drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:300;
+  pointer-events:none;transition:background .25s;}
+#drawer-overlay.open{background:rgba(0,0,0,.55);pointer-events:auto;}
+#drawer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--ink2);border-radius:20px 20px 0 0;
+  border-top:1px solid var(--border2);z-index:301;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.23,1,.32,1);
+  max-height:80vh;display:flex;flex-direction:column;padding-bottom:var(--sb);
+}
+#drawer.open{transform:translateY(0)}
+.dhandle{width:36px;height:4px;border-radius:99px;background:var(--border2);margin:12px auto 0;flex-shrink:0;}
+.dtitle{padding:14px 18px 8px;font-size:14px;font-weight:800;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;}
+#dplist{flex:1;overflow-y:auto;padding:10px 12px;}
+.dpi{display:flex;align-items:center;gap:10px;padding:13px 12px;border-radius:12px;
+  cursor:pointer;margin-bottom:4px;}
+.dpi:active{background:var(--panel)}
+.dpi.active{background:linear-gradient(120deg,rgba(78,168,255,.15),rgba(167,139,250,.08));
+  border:1px solid rgba(78,168,255,.25);}
+.dpdot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.dpi.active .dpdot{background:var(--blue);box-shadow:0 0 8px var(--blue);}
+.dpname{font-size:14px;font-weight:600;color:#ccc;flex:1;}
+.dpi.active .dpname{color:var(--blue);font-weight:700;}
+.dpcnt{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.dacts{padding:10px 12px;border-top:1px solid var(--border);
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex-shrink:0;}
+.da{padding:12px 8px;border-radius:12px;border:none;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;}
+.da:active{transform:scale(.92)}
+.da span{font-size:18px;}
+
+/* ─ MODAL ─ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;
+  display:flex;align-items:flex-end;backdrop-filter:blur(4px);animation:fin .15s;}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+.modal{background:var(--panel);border:1px solid var(--border2);
+  border-radius:20px 20px 0 0;width:100%;box-shadow:var(--shlg);
+  animation:sup .25s cubic-bezier(.23,1,.32,1);
+  padding-bottom:var(--sb);max-height:88vh;display:flex;flex-direction:column;}
+@keyframes sup{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+@media(min-width:600px){
+  .overlay{align-items:center;justify-content:center;}
+  .modal{border-radius:18px;max-width:560px;width:100%;}
+}
+.mhandle{width:36px;height:4px;border-radius:99px;background:var(--border2);margin:12px auto 0;flex-shrink:0;}
+.mhead{padding:14px 18px 10px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.mtitle{font-size:16px;font-weight:800;}
+.mbody{padding:16px 18px;overflow-y:auto;flex:1;}
+.mfoot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;}
+.mfoot button{flex:1}
+textarea.ea{
+  width:100%;min-height:160px;background:var(--ink2);color:#fff;
+  border:1.5px solid var(--border2);border-radius:12px;padding:14px;
+  font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;
+  resize:none;outline:none;transition:border-color .15s;
+  user-select:text;-webkit-user-select:text;pointer-events:auto;cursor:text;}
+textarea.ea:focus{border-color:var(--blue);}
+
+/* ─ SEQ ITEMS ─ */
+.si{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+  background:var(--ink2);border:1px solid var(--border);margin-bottom:6px;}
+.sn{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:800;font-family:'DM Mono',monospace;flex-shrink:0;}
+.sc{font-size:13px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.ci{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;
+  background:rgba(255,77,94,.08);border:1px solid rgba(255,77,94,.2);
+  font-size:11px;font-family:'DM Mono',monospace;color:#ddd;margin-bottom:5px;}
+
+/* ─ SHARED BTN ─ */
+.btn{padding:13px 16px;border-radius:12px;border:none;font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn:active{transform:scale(.94)}
+.btn-blue{background:var(--blue);color:#0a0a18}
+.btn-dark{background:var(--ink2);color:#ccc;border:1px solid var(--border2)}
+
+/* ─ CONN SVG ─ */
+.cp{fill:none;stroke:var(--accent);stroke-width:2.5;marker-end:url(#arr)}
+
+/* ─ TOAST ─ */
+#toast{
+  position:fixed;top:calc(var(--topbar) + var(--st) + 8px);left:50%;
+  transform:translateX(-50%) translateY(-6px);
+  padding:9px 18px;border-radius:12px;background:var(--ink2);color:#fff;
+  border:1px solid var(--border2);font-size:12px;font-weight:700;
+  box-shadow:var(--shlg);opacity:0;transition:all .25s cubic-bezier(.23,1,.32,1);
+  z-index:500;pointer-events:none;white-space:nowrap;max-width:88vw;
+  display:flex;align-items:center;gap:8px;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 
-<!-- ═══════ TOOLBAR ═══════ -->
-<div id="toolbar">
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Block Note
-  </div>
-  <div class="sep"></div>
-  <button class="tbtn btn-blue" onclick="addTextBlock()">✦ Text</button>
-  <button class="tbtn btn-green" onclick="addImageBlock()">⬡ Image</button>
-  <div class="sep"></div>
-  <button class="tbtn btn-orange" id="conn-btn" onclick="toggleConnect()">⟶ Connect</button>
-  <button class="tbtn btn-dark" onclick="disconnectSelected()">✂ Disconnect</button>
-  <div class="sep"></div>
-  <button class="tbtn btn-dark" onclick="orderUp()">↑ Up</button>
-  <button class="tbtn btn-dark" onclick="orderDown()">↓ Down</button>
-  <button class="tbtn btn-purple" onclick="showSequence()">≡ Sequence</button>
-  <div class="sep"></div>
-  <button class="tbtn btn-red" onclick="deleteSelected()">⌫ Delete</button>
-  <div class="sep"></div>
-  <button class="tbtn btn-dark" onclick="saveProject()">⬇ Save</button>
-  <button class="tbtn btn-dark" onclick="loadProject()">⬆ Load</button>
-  <div id="status-bar">✓ Ready</div>
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo"><div class="logo-dot"></div>Block Note</div>
+  <button class="icon-btn" onclick="saveProject()">💾</button>
+  <button class="icon-btn" onclick="loadProject()">📂</button>
+  <button id="page-tab" onclick="openDrawer()">
+    <span id="page-tab-name">Page 1</span>
+    <span style="opacity:.45;font-size:10px;flex-shrink:0">▾</span>
+  </button>
 </div>
 
-<!-- ═══════ MAIN ═══════ -->
-<div id="main">
-
-  <!-- Sidebar -->
-  <div id="sidebar">
-    <div id="sidebar-header">Pages</div>
-    <div id="page-list"></div>
-    <div id="sidebar-actions">
-      <button class="side-btn" style="background:var(--green);color:#0a1810" onclick="addPage()">＋ New Page</button>
-      <button class="side-btn" style="background:var(--panel);color:#ccc;border:1px solid var(--border2)" onclick="renamePage()">✏ Rename</button>
-      <button class="side-btn" style="background:rgba(255,77,94,.15);color:var(--accent);border:1px solid rgba(255,77,94,.25)" onclick="deletePage()">✕ Delete Page</button>
-    </div>
-  </div>
-
-  <!-- Canvas Area -->
-  <div id="canvas-wrap"
-    onmousedown="canvasMouseDown(event)"
-    onmousemove="canvasMouseMove(event)"
-    onmouseup="canvasMouseUp(event)"
-    oncontextmenu="canvasRightClick(event)"
-    ondragover="canvasDragOver(event)"
-    ondrop="canvasDrop(event)">
-
-    <svg id="svg-layer" width="3600" height="2800">
+<!-- CANVAS -->
+<div id="canvas-wrap" ondragover="canvasDragOver(event)" ondrop="canvasDrop(event)">
+  <div id="canvas-inner">
+    <svg id="svg-layer">
       <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent)"/>
+        <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0,10 3.5,0 7" fill="var(--accent)"/>
         </marker>
-        <marker id="arrow-temp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="var(--yellow)"/>
+        <marker id="arr-t" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0,10 3.5,0 7" fill="var(--yellow)"/>
         </marker>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
       </defs>
-      <g id="conn-group"></g>
-      <g id="temp-conn-group"></g>
+      <g id="cg"></g>
+      <g id="tcg"></g>
     </svg>
-
     <div id="block-layer"></div>
   </div>
 </div>
 
-<!-- Hint bar -->
-<div id="hint-bar">
-  <span>Double-click: edit block</span>
-  <span>Right-click: context menu</span>
-  <span><span class="hint-key">Ctrl+S</span> save</span>
-  <span><span class="hint-key">Del</span> delete selected</span>
-  <span><span class="hint-key">Esc</span> deselect / cancel connect</span>
+<!-- ACTION BAR -->
+<div id="action-bar">
+  <button class="ab" style="background:var(--blue);color:#0a0a18" onclick="ctxEdit()">✏ แก้ไข</button>
+  <button class="ab" style="background:var(--panel);color:#ccc;border:1px solid var(--border2)" onclick="orderUp()">↑</button>
+  <button class="ab" style="background:var(--panel);color:#ccc;border:1px solid var(--border2)" onclick="orderDown()">↓</button>
+  <button class="ab" style="background:rgba(255,77,94,.15);color:var(--accent);border:1px solid rgba(255,77,94,.28)" onclick="deleteSelected()">✕ ลบ</button>
 </div>
 
-<!-- ═══════ TOAST ═══════ -->
-<div id="toast"></div>
-
-<!-- ═══════ CONTEXT MENU ═══════ -->
-<div id="ctx-menu">
-  <div class="ctx-label" id="ctx-label">BLOCK</div>
-  <div class="ctx-item" onclick="ctxEdit()"><span>✏</span> Edit Content</div>
-  <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="orderUp()"><span>↑</span> Move Up in Sequence</div>
-  <div class="ctx-item" onclick="orderDown()"><span>↓</span> Move Down in Sequence</div>
-  <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="disconnectSelected()"><span>✂</span> Remove Connections</div>
-  <div class="ctx-item" onclick="deleteSelected()" style="color:var(--accent)"><span>✕</span> Delete Block</div>
+<!-- CONNECT BANNER -->
+<div id="conn-banner">
+  <span id="conn-hint">👆 แตะ Block ต้นทาง</span>
+  <button onclick="cancelConnect()">ยกเลิก</button>
 </div>
 
-<!-- ═══════ MODALS ═══════ -->
+<!-- BOTTOM NAV -->
+<div id="botnav">
+  <button class="nb c-blue" onclick="toggleFab()">
+    <span class="ni">＋</span><span class="nl">เพิ่ม</span>
+  </button>
+  <button class="nb c-orange" id="conn-btn" onclick="toggleConnect()">
+    <span class="ni">⟶</span><span class="nl">Connect</span>
+  </button>
+  <button class="nb c-red" onclick="disconnectSelected()">
+    <span class="ni">✂</span><span class="nl">ตัดเส้น</span>
+  </button>
+  <button class="nb c-purple" onclick="showSequence()">
+    <span class="ni">≡</span><span class="nl">ลำดับ</span>
+  </button>
+  <button class="nb c-green" onclick="openDrawer()">
+    <span class="ni">📄</span><span class="nl">Pages</span>
+  </button>
+</div>
 
-<!-- Edit text modal -->
+<!-- FAB -->
+<button id="fab" onclick="toggleFab()">＋</button>
+<div id="fab-menu">
+  <div class="fi">
+    <span class="fl">Text Block</span>
+    <button class="fb" style="background:linear-gradient(135deg,var(--blue),#7b68ee)" onclick="addTextBlock()">✦</button>
+  </div>
+  <div class="fi">
+    <span class="fl">Image Block</span>
+    <button class="fb" style="background:linear-gradient(135deg,var(--green),#2db77b)" onclick="addImageBlock()">⬡</button>
+  </div>
+</div>
+
+<!-- DRAWER (pages) -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div class="dhandle"></div>
+  <div class="dtitle">
+    <span>Pages</span>
+    <span id="dpcount" style="font-size:11px;color:var(--muted);font-weight:400"></span>
+  </div>
+  <div id="dplist"></div>
+  <div class="dacts">
+    <button class="da" style="background:rgba(62,207,142,.12);color:var(--green)" onclick="addPage()">
+      <span>＋</span>New Page
+    </button>
+    <button class="da" style="background:rgba(78,168,255,.12);color:var(--blue)" onclick="renamePage()">
+      <span>✏</span>Rename
+    </button>
+    <button class="da" style="background:rgba(255,77,94,.1);color:var(--accent)" onclick="deletePage()">
+      <span>✕</span>Delete
+    </button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
 <div id="modal-edit" class="overlay" style="display:none" onclick="if(event.target===this)closeModal('modal-edit')">
   <div class="modal">
-    <div class="modal-header">
-      <span style="font-size:18px">✏</span>
-      <div class="modal-title">Edit Block</div>
+    <div class="mhandle"></div>
+    <div class="mhead"><span style="font-size:20px">✏</span><div class="mtitle">แก้ไข Block</div></div>
+    <div class="mbody">
+      <textarea class="ea" id="edit-ta" placeholder="พิมพ์เนื้อหาที่นี่…" rows="7"></textarea>
     </div>
-    <div class="modal-body">
-      <textarea class="edit-area" id="edit-textarea" placeholder="Type your content here…"></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="tbtn btn-dark" onclick="closeModal('modal-edit')">Cancel</button>
-      <button class="tbtn btn-blue" onclick="saveEditModal()">✓ Save  <small style="opacity:.7;font-size:10px">Ctrl+Enter</small></button>
+    <div class="mfoot">
+      <button class="btn btn-dark" onclick="closeModal('modal-edit')">ยกเลิก</button>
+      <button class="btn btn-blue" onclick="saveEdit()">✓ บันทึก</button>
     </div>
   </div>
 </div>
 
-<!-- Sequence modal -->
+<!-- SEQ MODAL -->
 <div id="modal-seq" class="overlay" style="display:none" onclick="if(event.target===this)closeModal('modal-seq')">
-  <div class="modal" style="width:560px">
-    <div class="modal-header">
-      <span style="font-size:18px">≡</span>
-      <div class="modal-title" id="seq-title">Block Sequence</div>
-    </div>
-    <div class="modal-body" id="seq-body"></div>
-    <div class="modal-footer">
-      <button class="tbtn btn-blue" onclick="closeModal('modal-seq')">Close</button>
-    </div>
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mhead"><span style="font-size:20px">≡</span><div class="mtitle" id="seq-title">ลำดับ Block</div></div>
+    <div class="mbody" id="seq-body" style="overflow-y:auto"></div>
+    <div class="mfoot"><button class="btn btn-blue" onclick="closeModal('modal-seq')">ปิด</button></div>
   </div>
 </div>
 
-<!-- Image picker hidden input -->
-<input type="file" id="img-input" accept="image/*" style="display:none" onchange="imageFileChosen(event)"/>
-<input type="file" id="load-input" accept=".blocknote,.json" style="display:none" onchange="loadFile(event)"/>
+<div id="toast"></div>
+<input type="file" id="img-in" accept="image/*" style="display:none" onchange="imgChosen(event)"/>
+<input type="file" id="load-in" accept=".blocknote,.json" style="display:none" onchange="loadFile(event)"/>
 
 <script>
-/* ══════════════════════════════════════════
-   STATE
-══════════════════════════════════════════ */
-let pages = [{
-  id: 1, name: 'Page 1', blocks: [], connections: []
-}];
-let curPage = 0;
-let blockIdCounter = 0;
-let pageIdCounter = 1;
+/* STATE */
+let pages=[{id:1,name:'Page 1',blocks:[],connections:[]}];
+let curPage=0,blockIdCtr=0,pageIdCtr=1;
+let selectedId=null,connectMode=false,connectSrcId=null,connectSrcPort='s';
+let dragging=null,editingId=null,pendingImgId=null,fabOpen=false;
+let lpTimer=null;
 
-let selectedId = null;
-let connectMode = false;
-let connectSrcId = null;
-let connectSrcPort = 's'; // which port the source connection starts from
-let pendingImageBlockId = null;
-let dragging = null; // {id, ox, oy}
-let editingId = null;
-let tempConnEnd = {x:0, y:0};
-let tempConnActive = false;
+const pg=()=>pages[curPage];
+const gb=id=>pg().blocks.find(b=>b.id===id)||null;
 
-/* ══════════════════════════════════════════
-   PAGE HELPERS
-══════════════════════════════════════════ */
-const page = () => pages[curPage];
-
+/* PAGES */
 function renderSidebar(){
-  const el = document.getElementById('page-list');
-  el.innerHTML = '';
-  pages.forEach((p, i) => {
-    const div = document.createElement('div');
-    div.className = 'page-item' + (i===curPage ? ' active' : '');
-    div.innerHTML = `
-      <div class="page-indicator"></div>
-      <div class="page-name">${esc(p.name)}</div>
-      <div class="page-count">${p.blocks.length}</div>`;
-    div.onclick = () => switchPage(i);
-    el.appendChild(div);
+  document.getElementById('page-tab-name').textContent=pg().name;
+  document.getElementById('dpcount').textContent=`${pages.length} pages`;
+  const list=document.getElementById('dplist');list.innerHTML='';
+  pages.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='dpi'+(i===curPage?' active':'');
+    d.innerHTML=`<div class="dpdot"></div><div class="dpname">${esc(p.name)}</div><div class="dpcnt">${p.blocks.length} blocks</div>`;
+    d.onclick=()=>{switchPage(i);closeDrawer();};
+    list.appendChild(d);
   });
 }
+function switchPage(i){curPage=i;selectedId=null;cancelConnect();hideAbar();renderSidebar();renderAll();}
+function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drawer-overlay').classList.add('open');renderSidebar();}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');}
+function addPage(){const n=prompt('ชื่อ Page:',`Page ${pages.length+1}`);if(!n)return;pages.push({id:++pageIdCtr,name:n,blocks:[],connections:[]});curPage=pages.length-1;closeDrawer();renderSidebar();renderAll();toast('เพิ่ม: '+n,'📄');}
+function renamePage(){const n=prompt('ชื่อใหม่:',pg().name);if(n){pg().name=n;renderSidebar();}}
+function deletePage(){if(pages.length===1){toast('ไม่สามารถลบ Page เดียวได้','⚠');return;}if(!confirm(`ลบ "${pg().name}"?`))return;pages.splice(curPage,1);curPage=Math.max(0,curPage-1);selectedId=null;closeDrawer();renderSidebar();renderAll();}
 
-function switchPage(i){
-  curPage = i; selectedId=null; connectSrcId=null; cancelConnect();
-  renderSidebar(); renderAll();
-}
-
-function addPage(){
-  const name = prompt('Page name:', `Page ${pages.length+1}`);
-  if(!name) return;
-  pages.push({id:++pageIdCounter, name, blocks:[], connections:[]});
-  curPage = pages.length-1;
-  renderSidebar(); renderAll();
-  setStatus('Added page: '+name);
-}
-
-function renamePage(){
-  const name = prompt('New name:', page().name);
-  if(!name) return;
-  page().name = name;
-  renderSidebar();
-}
-
-function deletePage(){
-  if(pages.length===1){ toast('Cannot delete the only page!','⚠'); return; }
-  if(!confirm(`Delete "${page().name}" and all its blocks?`)) return;
-  pages.splice(curPage,1);
-  curPage = Math.max(0, curPage-1);
-  selectedId=null; renderSidebar(); renderAll();
-  setStatus('Page deleted');
-}
-
-/* ══════════════════════════════════════════
-   BLOCK HELPERS
-══════════════════════════════════════════ */
+/* BLOCKS */
 function nextPos(){
-  const n = page().blocks.length;
-  return {x: 80 + (n%4)*50, y: 90 + Math.floor(n/4)*50 + (n%4)*30};
+  const n=pg().blocks.length;
+  const w=document.getElementById('canvas-wrap');
+  return{x:Math.max(20,w.scrollLeft+40+(n%4)*30),y:Math.max(20,w.scrollTop+80+(n%4)*40)};
 }
-
 function addTextBlock(){
-  const {x,y} = nextPos();
-  const b = {id:++blockIdCounter, type:'text', content:'New text block ✦\nDouble-click to edit.',
-              x, y, w:230, h:'auto', order: page().blocks.length+1};
-  page().blocks.push(b);
-  renderAll();
-  selectedId = b.id; renderAll();
-  setStatus('Added text block');
-  openEditModal(b.id);
+  closeFab();const{x,y}=nextPos();
+  const b={id:++blockIdCtr,type:'text',content:'✦ Block ใหม่\nแตะสองครั้งเพื่อแก้ไข',x,y,w:200,order:pg().blocks.length+1};
+  pg().blocks.push(b);selectedId=b.id;renderAll();showAbar();
+  setTimeout(()=>openEditModal(b.id),80);
 }
-
-function addImageBlock(){
-  pendingImageBlockId = null;
-  document.getElementById('img-input').click();
+function addImageBlock(){closeFab();pendingImgId=null;document.getElementById('img-in').click();}
+function imgChosen(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    if(pendingImgId){const b=gb(pendingImgId);if(b){b.imgSrc=ev.target.result;b.content=f.name;renderAll();}pendingImgId=null;}
+    else{const{x,y}=nextPos();const b={id:++blockIdCtr,type:'image',content:f.name,imgSrc:ev.target.result,x,y,w:200,order:pg().blocks.length+1};pg().blocks.push(b);selectedId=b.id;renderAll();showAbar();}
+  };r.readAsDataURL(f);e.target.value='';
 }
-
-function imageFileChosen(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    if(pendingImageBlockId){
-      // replace image
-      const b = getBlock(pendingImageBlockId);
-      if(b){ b.imgSrc = ev.target.result; b.content = file.name; renderAll(); }
-      pendingImageBlockId = null;
-    } else {
-      const {x,y} = nextPos();
-      const b = {id:++blockIdCounter, type:'image', content:file.name,
-                  imgSrc: ev.target.result, x, y, w:240, order: page().blocks.length+1};
-      page().blocks.push(b);
-      selectedId = b.id; renderAll();
-      setStatus('Added image: '+file.name);
-    }
-  };
-  reader.readAsDataURL(file);
-  e.target.value='';
-}
-
-function getBlock(id){ return page().blocks.find(b=>b.id===id)||null; }
-
 function deleteSelected(){
-  if(!selectedId) return;
-  const p = page();
-  p.connections = p.connections.filter(c=>c.src!==selectedId && c.dst!==selectedId);
-  const idx = p.blocks.findIndex(b=>b.id===selectedId);
-  if(idx!==-1){ p.blocks.splice(idx,1); reassignOrders(); }
-  selectedId = null; renderAll();
-  setStatus('Block deleted');
+  if(!selectedId)return;
+  const p=pg();p.connections=p.connections.filter(c=>c.src!==selectedId&&c.dst!==selectedId);
+  const i=p.blocks.findIndex(b=>b.id===selectedId);if(i!==-1){p.blocks.splice(i,1);reorder();}
+  selectedId=null;hideAbar();renderAll();toast('ลบ Block แล้ว','🗑');
 }
+function reorder(){pg().blocks.forEach((b,i)=>b.order=i+1);}
+function orderUp(){if(!selectedId)return;const p=pg(),i=p.blocks.findIndex(b=>b.id===selectedId);if(i>0){[p.blocks[i],p.blocks[i-1]]=[p.blocks[i-1],p.blocks[i]];reorder();renderAll();}}
+function orderDown(){if(!selectedId)return;const p=pg(),i=p.blocks.findIndex(b=>b.id===selectedId);if(i<p.blocks.length-1){[p.blocks[i],p.blocks[i+1]]=[p.blocks[i+1],p.blocks[i]];reorder();renderAll();}}
 
-function reassignOrders(){
-  page().blocks.forEach((b,i)=>b.order=i+1);
-}
-
-function orderUp(){
-  if(!selectedId) return;
-  const p = page(); const idx = p.blocks.findIndex(b=>b.id===selectedId);
-  if(idx>0){
-    [p.blocks[idx],p.blocks[idx-1]]=[p.blocks[idx-1],p.blocks[idx]];
-    reassignOrders(); renderAll();
-  }
-}
-
-function orderDown(){
-  if(!selectedId) return;
-  const p = page(); const idx = p.blocks.findIndex(b=>b.id===selectedId);
-  if(idx<p.blocks.length-1){
-    [p.blocks[idx],p.blocks[idx+1]]=[p.blocks[idx+1],p.blocks[idx]];
-    reassignOrders(); renderAll();
-  }
-}
-
-/* ══════════════════════════════════════════
-   CONNECTIONS
-══════════════════════════════════════════ */
+/* CONNECT */
 function toggleConnect(){
-  connectMode = !connectMode;
-  connectSrcId = null; tempConnActive = false;
-  const btn = document.getElementById('conn-btn');
-  if(connectMode){
-    btn.textContent = '⛔ Cancel'; btn.classList.add('active-connect');
-    document.getElementById('canvas-wrap').style.cursor='crosshair';
-    setStatus('Connect mode ON — click source block');
-  } else {
-    btn.textContent = '⟶ Connect'; btn.classList.remove('active-connect');
-    document.getElementById('canvas-wrap').style.cursor='default';
-    setStatus('Connect mode OFF');
-    clearTempConn();
-  }
-  renderAll();
+  connectMode=!connectMode;
+  const btn=document.getElementById('conn-btn'),banner=document.getElementById('conn-banner');
+  if(connectMode){btn.classList.add('conn-on');banner.classList.add('show');document.getElementById('conn-hint').textContent='👆 แตะ Block ต้นทาง';}
+  else cancelConnect();
 }
-
 function cancelConnect(){
-  if(!connectMode) return;
-  connectMode=false; connectSrcId=null; connectSrcPort='s'; tempConnActive=false;
-  const btn = document.getElementById('conn-btn');
-  btn.textContent='⟶ Connect'; btn.classList.remove('active-connect');
-  document.getElementById('canvas-wrap').style.cursor='default';
-  clearTempConn();
+  connectMode=false;connectSrcId=null;connectSrcPort='s';
+  document.getElementById('conn-btn').classList.remove('conn-on');
+  document.getElementById('conn-banner').classList.remove('show');
+  document.getElementById('tcg').innerHTML='';
+  updateClasses();
 }
-
 function disconnectSelected(){
-  if(!selectedId){ toast('Select a block first','⚠'); return; }
-  const p = page();
-  const before = p.connections.length;
-  p.connections = p.connections.filter(c=>c.src!==selectedId && c.dst!==selectedId);
-  renderAll();
-  setStatus(`Removed ${before-p.connections.length} connection(s)`);
+  if(!selectedId){toast('เลือก Block ก่อน','⚠');return;}
+  const bf=pg().connections.length;
+  pg().connections=pg().connections.filter(c=>c.src!==selectedId&&c.dst!==selectedId);
+  renderConnections();toast(`ลบ ${bf-pg().connections.length} เส้นเชื่อม`,'✂');
 }
-
-/* ══════════════════════════════════════════
-   RENDER — full redraw
-══════════════════════════════════════════ */
-function renderAll(){
-  renderBlocks();
-  renderConnections();
-  renderSidebar();
-}
-
-function renderBlocks(){
-  const layer = document.getElementById('block-layer');
-  layer.innerHTML = '';
-  page().blocks.forEach(b=>layer.appendChild(createBlockEl(b)));
-}
-
-function createBlockEl(b){
-  const div = document.createElement('div');
-  div.className = `block type-${b.type}${b.id===selectedId?' selected':''}${b.id===connectSrcId?' connect-src':''}`;
-  div.id = `block-${b.id}`;
-  div.style.cssText = `left:${b.x}px;top:${b.y}px;width:${b.w}px`;
-
-  // Header
-  const headerColor = b.type==='text'
-    ? 'background:linear-gradient(135deg,#4ea8ff,#7b68ee)'
-    : 'background:linear-gradient(135deg,#3ecf8e,#2db77b)';
-  const icon = b.type==='text' ? '✦' : '⬡';
-
-  let bodyHTML = '';
-  if(b.type==='text'){
-    bodyHTML = `<div class="block-text">${esc(b.content)}</div>`;
-  } else {
-    const imgTag = b.imgSrc ? `<img src="${b.imgSrc}" alt="img"/>` : `<div style="color:#aaa;font-size:12px">⬡ No Image</div>`;
-    bodyHTML = `
-      <div class="block-img-wrap">${imgTag}</div>
-      <div class="block-img-name">${esc(b.content)}</div>`;
+function handleConnect(blockId,port){
+  if(!connectSrcId){
+    connectSrcId=blockId;connectSrcPort=port;selectedId=blockId;updateClasses();
+    document.getElementById('conn-hint').textContent='👆 แตะ Block ปลายทาง';
+    toast(`เลือกต้นทาง #${gb(blockId)?.order}`,'✦');
+  } else if(blockId!==connectSrcId){
+    const ex=pg().connections.some(c=>c.src===connectSrcId&&c.dst===blockId);
+    if(!ex)pg().connections.push({src:connectSrcId,src_port:connectSrcPort,dst:blockId,dst_port:port});
+    const s=gb(connectSrcId),d=gb(blockId);
+    toast(ex?'มีการเชื่อมแล้ว':`เชื่อม #${s?.order} → #${d?.order}`,'⟶');
+    connectSrcId=null;connectSrcPort='s';document.getElementById('tcg').innerHTML='';
+    document.getElementById('conn-hint').textContent='👆 แตะ Block ต้นทาง';
+    renderConnections();updateClasses();
   }
+}
 
-  div.innerHTML = `
-    <div class="block-header" style="${headerColor}">
-      <span class="block-type-icon">${icon}</span>
-      <span class="block-title">${esc(b.type==='text' ? b.content.split('\n')[0] : b.content)}</span>
-      <span class="block-order">${b.order}</span>
-    </div>
-    <div class="block-body">${bodyHTML}</div>
-    <div class="port port-n" data-port="n" data-id="${b.id}"></div>
-    <div class="port port-s" data-port="s" data-id="${b.id}"></div>
-    <div class="port port-w" data-port="w" data-id="${b.id}"></div>
-    <div class="port port-e" data-port="e" data-id="${b.id}"></div>`;
+/* FAB */
+function toggleFab(){fabOpen?closeFab():openFab();}
+function openFab(){fabOpen=true;document.getElementById('fab').classList.add('open');document.getElementById('fab-menu').classList.add('open');}
+function closeFab(){fabOpen=false;document.getElementById('fab').classList.remove('open');document.getElementById('fab-menu').classList.remove('open');}
+document.addEventListener('click',e=>{if(fabOpen&&!e.target.closest('#fab')&&!e.target.closest('#fab-menu'))closeFab();});
 
-  // Events
-  div.addEventListener('mousedown', e=>blockMouseDown(e, b.id));
-  div.addEventListener('dblclick',  e=>blockDblClick(e, b.id));
-  div.addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation(); showCtxMenu(e, b.id); });
+/* ACTION BAR */
+function showAbar(){document.getElementById('action-bar').classList.add('show');}
+function hideAbar(){document.getElementById('action-bar').classList.remove('show');}
 
-  // Port click for connect mode — pass which port side was clicked
-  div.querySelectorAll('.port').forEach(portEl=>{
-    portEl.addEventListener('mousedown', e=>{
-      e.stopPropagation();
-      const side = portEl.dataset.port; // 'n','s','e','w'
-      portMouseDown(e, b.id, side);
-    });
+/* RENDER */
+function renderAll(){renderBlocks();renderConnections();renderSidebar();}
+function renderBlocks(){
+  const layer=document.getElementById('block-layer');layer.innerHTML='';
+  pg().blocks.forEach(b=>layer.appendChild(mkBlock(b)));
+}
+function mkBlock(b){
+  const div=document.createElement('div');
+  div.className=`block type-${b.type}${b.id===selectedId?' selected':''}${b.id===connectSrcId?' connect-src':''}`;
+  div.id=`block-${b.id}`;
+  div.style.cssText=`left:${b.x}px;top:${b.y}px;width:${b.w}px`;
+  const icon=b.type==='text'?'✦':'⬡';
+  const ti=b.type==='text'?b.content.split('\n')[0].slice(0,26):b.content.slice(0,26);
+  let body='';
+  if(b.type==='text'){body=`<div class="btxt">${esc(b.content)}</div>`;}
+  else{const im=b.imgSrc?`<img src="${b.imgSrc}" alt=""/>`:`<div style="color:#aaa;font-size:13px">⬡ ไม่มีรูป</div>`;
+    body=`<div class="bimg">${im}</div><div class="bimgname">${esc(b.content)}</div>`;}
+  div.innerHTML=`
+    <div class="bh"><span class="bi">${icon}</span><span class="bt">${esc(ti)}</span><span class="bb2">${b.order}</span></div>
+    <div class="bdy">${body}</div>
+    <div class="port port-n" data-p="n"></div>
+    <div class="port port-s" data-p="s"></div>
+    <div class="port port-w" data-p="w"></div>
+    <div class="port port-e" data-p="e"></div>`;
+
+  /* touch events */
+  div.addEventListener('touchstart', e=>bTouchStart(e,b.id),{passive:false});
+  div.addEventListener('touchmove',  e=>bTouchMove(e,b.id), {passive:false});
+  div.addEventListener('touchend',   e=>bTouchEnd(e,b.id),  {passive:false});
+  div.addEventListener('touchcancel',e=>bTouchEnd(e,b.id),  {passive:false});
+  /* mouse events */
+  div.addEventListener('mousedown', e=>bMouseDown(e,b.id));
+  div.addEventListener('dblclick',  e=>bDblClick(e,b.id));
+
+  /* port events */
+  div.querySelectorAll('.port').forEach(pe=>{
+    const side=pe.dataset.p;
+    pe.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();portAct(b.id,side);},{passive:false});
+    pe.addEventListener('mousedown', e=>{e.stopPropagation();portAct(b.id,side);});
   });
-
   return div;
 }
+function updateClasses(){
+  pg().blocks.forEach(b=>{
+    const el=document.getElementById(`block-${b.id}`);if(!el)return;
+    el.className=`block type-${b.type}${b.id===selectedId?' selected':''}${b.id===connectSrcId?' connect-src':''}`;
+  });
+}
 
-/* ── Connections SVG ── */
+/* SVG CONNECTIONS */
 function renderConnections(){
-  const g = document.getElementById('conn-group');
-  g.innerHTML = '';
-  const idMap = Object.fromEntries(page().blocks.map(b=>[b.id,b]));
-
-  page().connections.forEach(conn=>{
-    const src = idMap[conn.src]; const dst = idMap[conn.dst];
-    if(!src||!dst) return;
-
-    const sp = conn.src_port || 's';
-    const dp = conn.dst_port || 'n';
-    const [x1,y1] = blockPort(src, sp);
-    const [x2,y2] = blockPort(dst, dp);
-    const path = bezierForPorts(x1,y1,sp, x2,y2,dp);
-
-    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d', path);
-    p.setAttribute('class','conn-path');
-
-    // label at midpoint
-    const mx=(x1+x2)/2, my=(y1+y2)/2;
-    const fg = document.createElementNS('http://www.w3.org/2000/svg','g');
-
-    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    circle.setAttribute('cx',mx); circle.setAttribute('cy',my);
-    circle.setAttribute('r',11); circle.setAttribute('fill','var(--accent)');
-
-    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
-    txt.setAttribute('x',mx); txt.setAttribute('y',my+4);
-    txt.setAttribute('text-anchor','middle');
-    txt.setAttribute('font-size','9');
-    txt.setAttribute('font-family','DM Mono, monospace');
-    txt.setAttribute('font-weight','700');
-    txt.setAttribute('fill','white');
-    txt.textContent = `${src.order}→${dst.order}`;
-
-    fg.appendChild(circle); fg.appendChild(txt);
-    g.appendChild(p); g.appendChild(fg);
+  const g=document.getElementById('cg');g.innerHTML='';
+  const map=Object.fromEntries(pg().blocks.map(b=>[b.id,b]));
+  pg().connections.forEach(c=>{
+    const s=map[c.src],d=map[c.dst];if(!s||!d)return;
+    const sp=c.src_port||'s',dp=c.dst_port||'n';
+    const[x1,y1]=portPos(s,sp),[x2,y2]=portPos(d,dp);
+    const path=svgEl('path');path.setAttribute('d',bezier(x1,y1,sp,x2,y2,dp));path.setAttribute('class','cp');
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const ci=svgEl('circle');ci.setAttribute('cx',mx);ci.setAttribute('cy',my);ci.setAttribute('r',12);ci.setAttribute('fill','var(--accent)');
+    const tx=svgEl('text');tx.setAttribute('x',mx);tx.setAttribute('y',my+4);tx.setAttribute('text-anchor','middle');
+    tx.setAttribute('font-size','9');tx.setAttribute('font-family','DM Mono,monospace');tx.setAttribute('font-weight','700');tx.setAttribute('fill','white');
+    tx.textContent=`${s.order}→${d.order}`;
+    g.appendChild(path);g.appendChild(ci);g.appendChild(tx);
   });
 }
-
-// Get exact pixel position of a port on a block
-function blockPort(b, side){
-  const el = document.getElementById(`block-${b.id}`);
-  const ah = el ? el.offsetHeight : 120;
-  const w = b.w;
-  if(side==='n') return [b.x + w/2,    b.y];
-  if(side==='s') return [b.x + w/2,    b.y + ah];
-  if(side==='w') return [b.x,           b.y + ah/2];
-  if(side==='e') return [b.x + w,       b.y + ah/2];
-  return [b.x + w/2, b.y + ah/2];
+function svgEl(t){return document.createElementNS('http://www.w3.org/2000/svg',t);}
+function portPos(b,side){
+  const el=document.getElementById(`block-${b.id}`);const h=el?el.offsetHeight:120;
+  if(side==='n')return[b.x+b.w/2,b.y];if(side==='s')return[b.x+b.w/2,b.y+h];
+  if(side==='w')return[b.x,b.y+h/2];if(side==='e')return[b.x+b.w,b.y+h/2];
+  return[b.x+b.w/2,b.y+h/2];
+}
+function bezier(x1,y1,sp,x2,y2,dp){
+  const d=Math.max(Math.sqrt((x2-x1)**2+(y2-y1)**2)*.45,60);
+  const dir={n:[0,-1],s:[0,1],e:[1,0],w:[-1,0]};
+  const[d1x,d1y]=dir[sp]||[0,1],[d2x,d2y]=dir[dp]||[0,-1];
+  return`M${x1} ${y1} C${x1+d1x*d} ${y1+d1y*d},${x2+d2x*d} ${y2+d2y*d},${x2} ${y2}`;
+}
+function autoPort(b,cx,cy){
+  const el=document.getElementById(`block-${b.id}`);const h=el?el.offsetHeight:120;
+  const dx=cx-(b.x+b.w/2),dy=cy-(b.y+h/2);
+  return Math.abs(dx)>Math.abs(dy)?(dx>0?'e':'w'):(dy>0?'s':'n');
+}
+function drawTempLine(x1,y1,sp,x2,y2){
+  const g=document.getElementById('tcg');g.innerHTML='';
+  const d=Math.max(60,Math.sqrt((x2-x1)**2+(y2-y1)**2)*.4);
+  const dir={n:[0,-1],s:[0,1],e:[1,0],w:[-1,0]};const[d1x,d1y]=dir[sp]||[0,1];
+  const p=svgEl('path');p.setAttribute('d',`M${x1} ${y1} C${x1+d1x*d} ${y1+d1y*d},${x2} ${y2-d},${x2} ${y2}`);
+  p.setAttribute('stroke','var(--yellow)');p.setAttribute('stroke-width','2');p.setAttribute('fill','none');
+  p.setAttribute('stroke-dasharray','8,4');p.setAttribute('marker-end','url(#arr-t)');g.appendChild(p);
 }
 
-// Bezier control points that respect port direction
-function bezierForPorts(x1,y1,sp, x2,y2,dp){
-  const dist = Math.max(Math.sqrt((x2-x1)**2+(y2-y1)**2)*0.45, 60);
-  const dir = {n:[0,-1], s:[0,1], e:[1,0], w:[-1,0]};
-  const [d1x,d1y] = dir[sp]||[0,1];
-  const [d2x,d2y] = dir[dp]||[0,-1];
-  const cp1x = x1 + d1x*dist, cp1y = y1 + d1y*dist;
-  const cp2x = x2 + d2x*dist, cp2y = y2 + d2y*dist;
-  return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
-}
-
-function clearTempConn(){
-  document.getElementById('temp-conn-group').innerHTML='';
-}
-
-function drawTempConn(x1,y1,x2,y2, srcPort='s'){
-  const g = document.getElementById('temp-conn-group');
-  g.innerHTML='';
-  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-  const dist = Math.max(Math.sqrt((x2-x1)**2+(y2-y1)**2)*0.45, 60);
-  const dir = {n:[0,-1], s:[0,1], e:[1,0], w:[-1,0]};
-  const [d1x,d1y] = dir[srcPort]||[0,1];
-  const cp1x = x1+d1x*dist, cp1y = y1+d1y*dist;
-  const cp2x = x2, cp2y = y2-dist;
-  path.setAttribute('d',`M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
-  path.setAttribute('stroke','var(--yellow)');
-  path.setAttribute('stroke-width','2');
-  path.setAttribute('fill','none');
-  path.setAttribute('stroke-dasharray','8,4');
-  path.setAttribute('marker-end','url(#arrow-temp)');
-  g.appendChild(path);
-}
-
-/* ══════════════════════════════════════════
-   MOUSE EVENTS
-══════════════════════════════════════════ */
-function getCanvasPos(e){
-  const wrap = document.getElementById('canvas-wrap');
-  const rect = wrap.getBoundingClientRect();
-  return {
-    x: e.clientX - rect.left + wrap.scrollLeft,
-    y: e.clientY - rect.top  + wrap.scrollTop
-  };
-}
-
-function blockMouseDown(e, id){
-  if(e.button!==0) return;
-  e.stopPropagation();
-
-  if(connectMode){
-    // Clicking block body (not a port) — auto-pick port based on relative position
-    const b = getBlock(id);
-    const pos = getCanvasPos(e);
-    const autoPort = autoPickPort(b, pos.x, pos.y);
-
-    if(!connectSrcId){
-      connectSrcId = id;
-      connectSrcPort = autoPort;
-      selectedId = id;
-      tempConnActive = true;
-      updateBlockClasses();
-      setStatus(`Source set — click destination block or port`);
-    } else if(id !== connectSrcId){
-      const exists = page().connections.some(c=>c.src===connectSrcId&&c.dst===id);
-      if(!exists) page().connections.push({src:connectSrcId, src_port:connectSrcPort, dst:id, dst_port:autoPort});
-      const src = getBlock(connectSrcId); const dst = getBlock(id);
-      setStatus(exists?'Connection already exists':`Connected #${src?.order} → #${dst?.order}`);
-      connectSrcId=null; connectSrcPort='s'; tempConnActive=false; clearTempConn();
-      renderConnections(); updateBlockClasses();
-    }
-    return;
-  }
-
-  // Update selection without destroying DOM (preserves dblclick)
-  const prev = selectedId;
-  selectedId = id;
-  if(prev !== id) updateBlockClasses();
-
-  const b = getBlock(id);
-  const pos = getCanvasPos(e);
-  dragging = {id, ox: pos.x - b.x, oy: pos.y - b.y};
-  document.getElementById('canvas-wrap').style.cursor = 'grabbing';
-}
-
-// Auto-pick the nearest port side given a click position on a block
-function autoPickPort(b, cx, cy){
-  const el = document.getElementById(`block-${b.id}`);
-  const ah = el ? el.offsetHeight : 120;
-  const bCx = b.x + b.w/2, bCy = b.y + ah/2;
-  const dx = cx - bCx, dy = cy - bCy;
-  // Whichever axis dominates decides the port
-  if(Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'e' : 'w';
-  return dy > 0 ? 's' : 'n';
-}
-
-// Update only CSS classes — does NOT destroy/recreate block elements
-function updateBlockClasses(){
-  page().blocks.forEach(b=>{
-    const el = document.getElementById(`block-${b.id}`);
-    if(!el) return;
-    el.className = `block type-${b.type}${b.id===selectedId?' selected':''}${b.id===connectSrcId?' connect-src':''}`;
-  });
-  renderSidebar();
-}
-
-function portMouseDown(e, id, side='s'){
-  e.stopPropagation();
+/* PORT ACTION */
+function portAct(id,side){
   if(!connectMode){
-    // In non-connect mode, port click still selects the block but doesn't drag
-    selectedId = id; updateBlockClasses();
-    return;
+    connectMode=true;
+    document.getElementById('conn-btn').classList.add('conn-on');
+    document.getElementById('conn-banner').classList.add('show');
   }
-  // Connect mode: side is the port being clicked
-  if(!connectSrcId){
-    connectSrcId = id;
-    connectSrcPort = side;
-    selectedId = id;
-    tempConnActive = true;
-    updateBlockClasses();
-    setStatus(`Source port [${side}] set — click a destination port or block`);
-  } else if(id !== connectSrcId){
-    const exists = page().connections.some(c=>c.src===connectSrcId&&c.dst===id);
-    if(!exists) page().connections.push({src:connectSrcId, src_port:connectSrcPort, dst:id, dst_port:side});
-    const src = getBlock(connectSrcId); const dst = getBlock(id);
-    setStatus(exists?'Connection already exists':`Connected #${src?.order}[${connectSrcPort}] → #${dst?.order}[${side}]`);
-    connectSrcId=null; connectSrcPort='s'; tempConnActive=false; clearTempConn();
-    renderConnections(); updateBlockClasses();
-  }
+  handleConnect(id,side);
 }
 
-function canvasMouseDown(e){
-  if(e.button!==0) return;
-  hideCtxMenu();
-  if(connectMode) return;
-  if(e.target===document.getElementById('canvas-wrap') ||
-     e.target===document.getElementById('block-layer')||
-     e.target===document.getElementById('svg-layer')){
-    selectedId=null; updateBlockClasses();
-  }
+/* TOUCH LOGIC */
+let tapTime=0,tapId=null;
+const LP=500,DRAG_TH=8;
+function bTouchStart(e,id){
+  if(e.touches.length>1)return;e.stopPropagation();
+  const t=e.touches[0];const pos=cvPos(t.clientX,t.clientY);
+  clearTimeout(lpTimer);
+  if(connectMode){handleConnect(id,autoPort(gb(id),pos.x,pos.y));return;}
+  lpTimer=setTimeout(()=>{
+    dragging=null;selectedId=id;updateClasses();showAbar();vibrate(25);
+  },LP);
+  const b=gb(id);
+  dragging={id,sx:t.clientX,sy:t.clientY,bx:b.x,by:b.y,moved:false};
+}
+function bTouchMove(e,id){
+  if(!dragging||dragging.id!==id)return;
+  if(e.touches.length>1){dragging=null;return;}
+  e.preventDefault();e.stopPropagation();
+  const t=e.touches[0];const dx=t.clientX-dragging.sx,dy=t.clientY-dragging.sy;
+  if(!dragging.moved&&Math.sqrt(dx*dx+dy*dy)>DRAG_TH){dragging.moved=true;clearTimeout(lpTimer);}
+  if(!dragging.moved)return;
+  const b=gb(id);if(!b)return;
+  b.x=Math.max(0,dragging.bx+dx);b.y=Math.max(0,dragging.by+dy);
+  const el=document.getElementById(`block-${id}`);if(el){el.style.left=b.x+'px';el.style.top=b.y+'px';}
+  renderConnections();
+}
+function bTouchEnd(e,id){
+  clearTimeout(lpTimer);const was=dragging?.moved;dragging=null;
+  if(connectMode||was)return;
+  const now=Date.now();
+  if(tapId===id&&now-tapTime<360){tapTime=0;tapId=null;bDblClick(null,id);return;}
+  tapTime=now;tapId=id;selectedId=id;updateClasses();showAbar();
 }
 
-function canvasMouseMove(e){
-  const pos = getCanvasPos(e);
-  if(dragging && !connectMode){
-    const b = getBlock(dragging.id);
-    if(b){
-      b.x = Math.max(0, pos.x - dragging.ox);
-      b.y = Math.max(0, pos.y - dragging.oy);
-      const el = document.getElementById(`block-${b.id}`);
-      if(el){ el.style.left=b.x+'px'; el.style.top=b.y+'px'; }
-      renderConnections();
-    }
-  }
-  if(connectMode && connectSrcId && tempConnActive){
-    const src = getBlock(connectSrcId);
-    if(src){
-      const [x1,y1] = blockPort(src, connectSrcPort);
-      drawTempConn(x1,y1,pos.x,pos.y, connectSrcPort);
-    }
-  }
+/* MOUSE LOGIC */
+function bMouseDown(e,id){
+  if(e.button!==0)return;e.stopPropagation();
+  if(connectMode){const pos=cvPos(e.clientX,e.clientY);handleConnect(id,autoPort(gb(id),pos.x,pos.y));return;}
+  const prev=selectedId;selectedId=id;if(prev!==id){updateClasses();showAbar();}
+  const b=gb(id);const pos=cvPos(e.clientX,e.clientY);
+  dragging={id,sx:e.clientX,sy:e.clientY,bx:b.x,by:b.y,moved:false};
+  document.getElementById('canvas-wrap').style.cursor='grabbing';
+}
+function bDblClick(e,id){
+  if(e){e.stopPropagation();e.preventDefault();}dragging=null;
+  const b=gb(id);if(!b)return;
+  if(b.type==='text')openEditModal(id);else{pendingImgId=id;document.getElementById('img-in').click();}
 }
 
-function canvasMouseUp(e){
-  dragging=null;
-  document.getElementById('canvas-wrap').style.cursor = connectMode?'crosshair':'default';
-}
-
-function canvasRightClick(e){
-  e.preventDefault();
-  if(selectedId){ showCtxMenu(e, selectedId); }
-}
-
-function canvasDragOver(e){ e.preventDefault(); }
-function canvasDrop(e){
-  e.preventDefault();
-  const files = e.dataTransfer?.files;
-  if(!files||files.length===0) return;
-  const f = files[0];
-  if(!f.type.startsWith('image/')) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const pos = getCanvasPos(e);
-    const b = {id:++blockIdCounter, type:'image', content:f.name,
-                imgSrc:ev.target.result, x:pos.x-120, y:pos.y-60, w:240,
-                order:page().blocks.length+1};
-    page().blocks.push(b);
-    selectedId=b.id; renderAll();
-    setStatus('Dropped image: '+f.name);
-  };
-  reader.readAsDataURL(f);
-}
-
-/* ══════════════════════════════════════════
-   KEYBOARD
-══════════════════════════════════════════ */
-document.addEventListener('keydown', e=>{
-  if(e.ctrlKey && e.key==='s'){ e.preventDefault(); saveProject(); return; }
-  if(e.key==='Escape'){ cancelConnect(); selectedId=null; renderAll(); return; }
-  if((e.key==='Delete'||e.key==='Backspace') && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){
-    deleteSelected();
+/* CANVAS MOUSE */
+const cw=document.getElementById('canvas-wrap');
+cw.addEventListener('mousemove',e=>{
+  if(!dragging)return;const dx=e.clientX-dragging.sx,dy=e.clientY-dragging.sy;
+  if(!dragging.moved&&Math.sqrt(dx*dx+dy*dy)>4){dragging.moved=true;}
+  if(!dragging.moved)return;
+  const b=gb(dragging.id);if(!b)return;
+  b.x=Math.max(0,dragging.bx+dx);b.y=Math.max(0,dragging.by+dy);
+  const el=document.getElementById(`block-${dragging.id}`);if(el){el.style.left=b.x+'px';el.style.top=b.y+'px';}
+  renderConnections();
+  if(connectMode&&connectSrcId){const s=gb(connectSrcId);if(s){const[x1,y1]=portPos(s,connectSrcPort);const p=cvPos(e.clientX,e.clientY);drawTempLine(x1,y1,connectSrcPort,p.x,p.y);}}
+});
+cw.addEventListener('mouseup',()=>{dragging=null;cw.style.cursor=connectMode?'crosshair':'default';});
+cw.addEventListener('mousedown',e=>{
+  if([cw,document.getElementById('canvas-inner'),document.getElementById('block-layer')].includes(e.target)){
+    if(connectMode)return;selectedId=null;hideAbar();updateClasses();
   }
 });
+cw.addEventListener('touchmove',e=>{
+  if(connectMode&&connectSrcId&&e.touches.length===1){
+    const t=e.touches[0];const s=gb(connectSrcId);
+    if(s){const[x1,y1]=portPos(s,connectSrcPort);const p=cvPos(t.clientX,t.clientY);drawTempLine(x1,y1,connectSrcPort,p.x,p.y);}
+  }
+},{passive:true});
 
-/* ══════════════════════════════════════════
-   EDIT MODAL
-══════════════════════════════════════════ */
+function cvPos(cx,cy){
+  const r=cw.getBoundingClientRect();
+  return{x:cx-r.left+cw.scrollLeft,y:cy-r.top+cw.scrollTop};
+}
+
+/* DRAG & DROP IMAGE */
+function canvasDragOver(e){e.preventDefault();}
+function canvasDrop(e){
+  e.preventDefault();const f=e.dataTransfer?.files[0];
+  if(!f||!f.type.startsWith('image/'))return;
+  const r=new FileReader();r.onload=ev=>{
+    const p=cvPos(e.clientX,e.clientY);
+    const b={id:++blockIdCtr,type:'image',content:f.name,imgSrc:ev.target.result,x:p.x-100,y:p.y-60,w:200,order:pg().blocks.length+1};
+    pg().blocks.push(b);selectedId=b.id;renderAll();showAbar();
+  };r.readAsDataURL(f);
+}
+
+/* EDIT MODAL */
 function openEditModal(id){
-  editingId = id;
-  const b = getBlock(id);
-  if(!b) return;
-  const ta = document.getElementById('edit-textarea');
-  ta.value = b.content;
+  editingId=id;const b=gb(id);if(!b)return;
+  const ta=document.getElementById('edit-ta');ta.value=b.content;
   document.getElementById('modal-edit').style.display='flex';
-  // slightly longer delay ensures modal is rendered before we focus
-  setTimeout(()=>{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 120);
+  setTimeout(()=>{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);},150);
 }
-
-function blockDblClick(e, id){
-  e.stopPropagation();
-  e.preventDefault();
-  dragging = null; // cancel drag started on first click
-  const b = getBlock(id);
-  if(!b) return;
-  if(b.type==='text') openEditModal(id);
-  else {
-    pendingImageBlockId = id;
-    document.getElementById('img-input').click();
-  }
-}
-
-function saveEditModal(){
-  const b = getBlock(editingId);
-  if(b){
-    b.content = document.getElementById('edit-textarea').value.trim() || b.content;
-    renderAll();
-    setStatus('Block updated');
-  }
+function ctxEdit(){if(!selectedId)return;const b=gb(selectedId);if(b.type==='text')openEditModal(selectedId);else{pendingImgId=selectedId;document.getElementById('img-in').click();}}
+function saveEdit(){
+  const b=gb(editingId);if(b){const v=document.getElementById('edit-ta').value.trim();if(v)b.content=v;renderAll();toast('บันทึกแล้ว','✓');}
   closeModal('modal-edit');
 }
+function closeModal(id){document.getElementById(id).style.display='none';}
 
-document.addEventListener('keydown', e=>{
-  if(e.ctrlKey && e.key==='Enter'){
-    if(document.getElementById('modal-edit').style.display==='flex') saveEditModal();
+/* SEQUENCE */
+function showSequence(){
+  const p=pg();document.getElementById('seq-title').textContent=`ลำดับ — ${p.name}`;
+  const body=document.getElementById('seq-body');
+  const sorted=[...p.blocks].sort((a,b)=>a.order-b.order);
+  let html='';
+  if(!sorted.length){html='<p style="color:var(--muted);text-align:center;padding:24px 0;font-size:14px">ไม่มี Block</p>';}
+  else sorted.forEach(b=>{
+    const icon=b.type==='text'?'✦':'⬡';
+    const col=b.type==='text'?'background:rgba(78,168,255,.15);color:var(--blue)':'background:rgba(62,207,142,.15);color:var(--green)';
+    const prev=b.content.replace(/\n/g,' ').slice(0,46)+(b.content.length>46?'…':'');
+    html+=`<div class="si"><div class="sn" style="${col}">${b.order}</div><span style="font-size:16px">${icon}</span><span class="sc">${esc(prev)}</span></div>`;
+  });
+  if(p.connections.length){
+    const map=Object.fromEntries(p.blocks.map(b=>[b.id,b]));
+    html+=`<div style="margin:18px 0 8px;font-size:10px;letter-spacing:1.4px;color:var(--muted)">CONNECTIONS</div>`;
+    p.connections.forEach(c=>{const s=map[c.src],d=map[c.dst];if(s&&d)html+=`<div class="ci"><span style="color:var(--accent)">⟶</span><span>#${s.order} ${esc(s.content.split('\n')[0].slice(0,16))}…</span><span style="color:var(--muted)">→</span><span>#${d.order} ${esc(d.content.split('\n')[0].slice(0,16))}…</span></div>`;});
   }
+  body.innerHTML=html;document.getElementById('modal-seq').style.display='flex';
+}
+
+/* SAVE / LOAD */
+function saveProject(){
+  const d=JSON.stringify({version:'1.2',pages},null,2);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([d],{type:'application/json'}));
+  a.download=`block_note_${Date.now()}.blocknote`;a.click();toast('บันทึกแล้ว','💾');
+}
+function loadProject(){document.getElementById('load-in').click();}
+function loadFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    try{const d=JSON.parse(ev.target.result);pages=d.pages||[{id:1,name:'Page 1',blocks:[],connections:[]}];
+      blockIdCtr=Math.max(0,...pages.flatMap(p=>p.blocks.map(b=>b.id)));pageIdCtr=Math.max(0,...pages.map(p=>p.id));
+      curPage=0;selectedId=null;hideAbar();renderSidebar();renderAll();toast('โหลดสำเร็จ','📂');
+    }catch(err){toast('โหลดไม่ได้: '+err.message,'⚠');}
+  };r.readAsText(f);e.target.value='';
+}
+
+/* KEYBOARD */
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveProject();}
+  if(e.key==='Escape'){cancelConnect();selectedId=null;hideAbar();updateClasses();}
+  if((e.key==='Delete'||e.key==='Backspace')&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName))deleteSelected();
+  if(e.ctrlKey&&e.key==='Enter'&&document.getElementById('modal-edit').style.display==='flex')saveEdit();
 });
 
-function closeModal(id){ document.getElementById(id).style.display='none'; }
-
-/* ══════════════════════════════════════════
-   SEQUENCE MODAL
-══════════════════════════════════════════ */
-function showSequence(){
-  const p = page();
-  document.getElementById('seq-title').textContent = `Sequence — ${p.name}`;
-  const body = document.getElementById('seq-body');
-
-  const sorted = [...p.blocks].sort((a,b)=>a.order-b.order);
-
-  let html = '<div class="seq-list">';
-  if(!sorted.length){
-    html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px">No blocks on this page.</div>';
-  } else {
-    sorted.forEach(b=>{
-      const icon = b.type==='text'?'✦':'⬡';
-      const colors = b.type==='text'?'background:rgba(78,168,255,.15);color:var(--blue)':'background:rgba(62,207,142,.15);color:var(--green)';
-      const preview = b.content.replace(/\n/g,' ').slice(0,52)+(b.content.length>52?'…':'');
-      html += `<div class="seq-item">
-        <div class="seq-num" style="${colors}">${b.order}</div>
-        <span class="seq-icon">${icon}</span>
-        <span class="seq-content">${esc(preview)}</span>
-      </div>`;
-    });
-  }
-  html += '</div>';
-
-  if(p.connections.length){
-    const idMap = Object.fromEntries(p.blocks.map(b=>[b.id,b]));
-    html += '<div style="margin-top:18px;font-size:10px;letter-spacing:1.4px;color:var(--muted);margin-bottom:8px">CONNECTIONS</div>';
-    p.connections.forEach(c=>{
-      const src = idMap[c.src]; const dst = idMap[c.dst];
-      if(src&&dst){
-        html += `<div class="conn-item">
-          <span style="color:var(--accent)">⟶</span>
-          <span>#${src.order} ${esc(src.content.split('\n')[0].slice(0,20))}…</span>
-          <span style="color:var(--muted)">→</span>
-          <span>#${dst.order} ${esc(dst.content.split('\n')[0].slice(0,20))}…</span>
-        </div>`;
-      }
-    });
-  }
-
-  body.innerHTML = html;
-  document.getElementById('modal-seq').style.display='flex';
+/* UTILS */
+function esc(s=''){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+let toastT;
+function toast(msg,icon='✓'){
+  const el=document.getElementById('toast');el.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2200);
 }
+function vibrate(ms){navigator.vibrate?.(ms);}
 
-/* ══════════════════════════════════════════
-   CONTEXT MENU
-══════════════════════════════════════════ */
-function showCtxMenu(e, id){
-  selectedId=id; renderAll();
-  const b=getBlock(id);
-  const m=document.getElementById('ctx-menu');
-  document.getElementById('ctx-label').textContent=`Block #${b.order}: ${b.content.slice(0,20)}…`;
-  m.style.display='block';
-  m.style.left = Math.min(e.clientX, window.innerWidth-200)+'px';
-  m.style.top  = Math.min(e.clientY, window.innerHeight-220)+'px';
-}
-
-function hideCtxMenu(){ document.getElementById('ctx-menu').style.display='none'; }
-document.addEventListener('click', hideCtxMenu);
-
-function ctxEdit(){
-  if(!selectedId) return;
-  const b=getBlock(selectedId);
-  if(b.type==='text') openEditModal(selectedId);
-  else { pendingImageBlockId=selectedId; document.getElementById('img-input').click(); }
-}
-
-/* ══════════════════════════════════════════
-   SAVE / LOAD
-══════════════════════════════════════════ */
-function saveProject(){
-  const data = JSON.stringify({version:'1.1', pages}, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `block_note_${Date.now()}.blocknote`;
-  a.click();
-  setStatus('✓ Project saved');
-  toast('Project saved!', '💾');
-}
-
-function loadProject(){
-  document.getElementById('load-input').click();
-}
-
-function loadFile(e){
-  const f = e.target.files[0]; if(!f) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try{
-      const data = JSON.parse(ev.target.result);
-      pages = data.pages||[{id:1,name:'Page 1',blocks:[],connections:[]}];
-      blockIdCounter = Math.max(0,...pages.flatMap(p=>p.blocks.map(b=>b.id)));
-      pageIdCounter = Math.max(0,...pages.map(p=>p.id));
-      curPage=0; selectedId=null;
-      renderSidebar(); renderAll();
-      setStatus('✓ Project loaded: '+f.name);
-      toast('Project loaded!','📂');
-    } catch(err){ toast('Failed to load: '+err.message,'⚠'); }
-  };
-  reader.readAsText(f);
-  e.target.value='';
-}
-
-/* ══════════════════════════════════════════
-   STATUS / TOAST
-══════════════════════════════════════════ */
-function setStatus(msg){
-  document.getElementById('status-bar').textContent = msg;
-}
-let toastTimer;
-function toast(msg, icon='✓'){
-  const el = document.getElementById('toast');
-  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 2800);
-}
-
-/* ══════════════════════════════════════════
-   UTILITIES
-══════════════════════════════════════════ */
-function esc(s=''){
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
-
-/* ══════════════════════════════════════════
-   INIT
-══════════════════════════════════════════ */
-renderSidebar();
-renderAll();
-
-// Demo block
+/* INIT */
+renderSidebar();renderAll();
 setTimeout(()=>{
-  if(page().blocks.length===0){
-    const b1 = {id:++blockIdCounter, type:'text',
-      content:'Welcome to Block Note ✦\nDouble-click to edit.\nDrag to move.',
-      x:100, y:90, w:230, order:1};
-    const b2 = {id:++blockIdCounter, type:'text',
-      content:'Use ⟶ Connect to link blocks together.',
-      x:420, y:90, w:230, order:2};
-    const b3 = {id:++blockIdCounter, type:'text',
-      content:'Drag & Drop an image file here to add image blocks!',
-      x:260, y:280, w:230, order:3};
-    page().blocks.push(b1, b2, b3);
-    page().connections.push({src:b1.id, dst:b2.id});
-    page().connections.push({src:b2.id, dst:b3.id});
-    selectedId = null;
+  if(pg().blocks.length===0){
+    const b1={id:++blockIdCtr,type:'text',content:'ยินดีต้อนรับ ✦\nแตะสองครั้งเพื่อแก้ไข\nกดค้างเพื่อเลือก',x:24,y:50,w:200,order:1};
+    const b2={id:++blockIdCtr,type:'text',content:'กด ⟶ หรือแตะที่จุดมุม Block เพื่อเชื่อมสาย',x:260,y:50,w:200,order:2};
+    const b3={id:++blockIdCtr,type:'text',content:'กด ＋ FAB ด้านล่างขวาเพื่อเพิ่ม Block',x:140,y:240,w:200,order:3};
+    pg().blocks.push(b1,b2,b3);
+    pg().connections.push({src:b1.id,src_port:'e',dst:b2.id,dst_port:'w'});
+    pg().connections.push({src:b2.id,src_port:'s',dst:b3.id,dst_port:'n'});
     renderAll();
   }
-}, 0);
+},0);
 </script>
 </body>
 </html>
