@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Block Note ✦</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════ */
+:root{
+  --ink:#0a0a0f;
+  --ink2:#111118;
+  --paper:#16161f;
+  --panel:#1e1e2a;
+  --border:#2e2e3e;
+  --border2:#3a3a50;
+  --canvas:#f4f3ef;
+  --grid:#e8e6df;
+  --grid2:#d8d5cc;
+  --accent:#ff4d5e;
+  --accent2:#ff8c42;
+  --blue:#4ea8ff;
+  --green:#3ecf8e;
+  --purple:#a78bfa;
+  --yellow:#fbbf24;
+  --white:#ffffff;
+  --muted:#7a7a9a;
+  --shadow: 0 4px 24px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.12);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Syne',sans-serif;
+  background:var(--ink);
+  color:var(--white);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  user-select:none;
+}
+
+/* ══════════════════════════════════════════
+   TOOLBAR
+══════════════════════════════════════════ */
+#toolbar{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 16px;
+  background:var(--ink2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  flex-wrap:wrap;
+  z-index:100;
+}
+.logo{
+  font-size:18px;font-weight:800;letter-spacing:-0.5px;
+  color:var(--white);margin-right:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.logo-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 10px var(--accent);
+}
+.sep{width:1px;height:30px;background:var(--border);margin:0 4px}
+.tbtn{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 12px;border-radius:7px;border:none;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .15s ease;letter-spacing:.3px;
+  white-space:nowrap;
+}
+.tbtn:hover{transform:translateY(-1px);filter:brightness(1.12)}
+.tbtn:active{transform:translateY(0)}
+.btn-red{background:var(--accent);color:#fff}
+.btn-orange{background:var(--accent2);color:#fff}
+.btn-blue{background:var(--blue);color:#0a0a18}
+.btn-green{background:var(--green);color:#0a1810}
+.btn-purple{background:var(--purple);color:#0a0820}
+.btn-dark{background:var(--panel);color:var(--white);border:1px solid var(--border2)}
+.btn-yellow{background:var(--yellow);color:#1a0f00}
+.tbtn.active-connect{
+  background:var(--accent)!important;color:#fff!important;
+  box-shadow:0 0 18px rgba(255,77,94,.5);
+  animation:pulse-btn .9s ease-in-out infinite;
+}
+@keyframes pulse-btn{0%,100%{box-shadow:0 0 14px rgba(255,77,94,.4)}50%{box-shadow:0 0 26px rgba(255,77,94,.75)}}
+
+#status-bar{
+  margin-left:auto;
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--muted);padding:4px 10px;
+  border-radius:6px;background:var(--panel);
+  border:1px solid var(--border);
+  white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ══════════════════════════════════════════
+   MAIN LAYOUT
+══════════════════════════════════════════ */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ══════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════ */
+#sidebar{
+  width:188px;flex-shrink:0;
+  background:var(--ink2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+#sidebar-header{
+  padding:14px 14px 8px;
+  font-size:10px;font-weight:700;letter-spacing:1.8px;
+  color:var(--muted);text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+#page-list{flex:1;overflow-y:auto;padding:8px 8px;}
+#page-list::-webkit-scrollbar{width:4px}
+#page-list::-webkit-scrollbar-track{background:transparent}
+#page-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+.page-item{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 10px;border-radius:8px;
+  cursor:pointer;transition:all .15s ease;
+  margin-bottom:3px;position:relative;
+}
+.page-item:hover{background:var(--panel)}
+.page-item.active{
+  background:linear-gradient(120deg, rgba(78,168,255,.15), rgba(167,139,250,.08));
+  border:1px solid rgba(78,168,255,.25);
+}
+.page-item.active .page-name{color:var(--blue);font-weight:700}
+.page-indicator{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--muted);flex-shrink:0;transition:.15s;
+}
+.page-item.active .page-indicator{
+  background:var(--blue);
+  box-shadow:0 0 8px var(--blue);
+}
+.page-name{
+  font-size:12px;font-weight:600;color:#ccc;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.page-count{
+  font-size:9px;color:var(--muted);
+  font-family:'DM Mono',monospace;
+}
+#sidebar-actions{
+  padding:10px 8px;
+  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:5px;
+}
+.side-btn{
+  width:100%;padding:7px 10px;border-radius:7px;
+  border:none;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .15s;text-align:left;
+  display:flex;align-items:center;gap:6px;
+}
+.side-btn:hover{filter:brightness(1.15);transform:translateX(2px)}
+
+/* ══════════════════════════════════════════
+   CANVAS CONTAINER
+══════════════════════════════════════════ */
+#canvas-wrap{
+  flex:1;overflow:auto;position:relative;
+  background:var(--canvas);
+  cursor:default;
+}
+#canvas-wrap::-webkit-scrollbar{width:8px;height:8px}
+#canvas-wrap::-webkit-scrollbar-track{background:#e8e6df}
+#canvas-wrap::-webkit-scrollbar-thumb{background:#c5c0b5;border-radius:99px}
+#svg-layer{
+  position:absolute;top:0;left:0;
+  pointer-events:none;z-index:1;
+}
+#block-layer{
+  position:absolute;top:0;left:0;
+  width:3600px;height:2800px;
+  z-index:2;
+}
+
+/* ══════════════════════════════════════════
+   GRID (CSS background)
+══════════════════════════════════════════ */
+#canvas-wrap{
+  background-image:
+    linear-gradient(var(--grid2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid2) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:200px 200px, 200px 200px, 40px 40px, 40px 40px;
+}
+
+/* ══════════════════════════════════════════
+   BLOCKS
+══════════════════════════════════════════ */
+.block{
+  position:absolute;
+  width:230px;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  cursor:grab;
+  transition:box-shadow .2s ease, transform .1s ease;
+  border:2px solid transparent;
+  background:#fff;
+}
+.block:hover{
+  box-shadow:var(--shadow-lg);
+  transform:translateY(-1px);
+}
+.block.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(255,77,94,.25), var(--shadow-lg);
+  transform:translateY(-2px);
+}
+.block.connect-src{
+  border-color:var(--yellow);
+  box-shadow:0 0 0 3px rgba(251,191,36,.35), var(--shadow-lg);
+}
+.block:active{cursor:grabbing;transform:translateY(-2px) scale(1.01)}
+
+.block-header{
+  padding:9px 12px;
+  display:flex;align-items:center;gap:6px;
+  position:relative;
+}
+.block-type-icon{font-size:13px;flex-shrink:0}
+.block-title{
+  font-size:11px;font-weight:700;color:#fff;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:'Syne',sans-serif;
+}
+.block-order{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;color:#fff;font-family:'DM Mono',monospace;
+  flex-shrink:0;
+}
+.block-body{
+  padding:10px 12px 12px;
+  background:#fff;
+  min-height:64px;
+}
+.block-text{
+  font-size:12px;line-height:1.55;color:#2a2a3a;
+  font-family:'DM Mono',monospace;
+  word-break:break-word;
+  display:-webkit-box;-webkit-line-clamp:5;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+.block-img-wrap{
+  width:100%;height:140px;
+  overflow:hidden;border-radius:4px;
+  background:#f0ede6;
+  display:flex;align-items:center;justify-content:center;
+}
+.block-img-wrap img{
+  width:100%;height:100%;object-fit:cover;
+}
+.block-img-name{
+  font-size:10px;color:#888;font-family:'DM Mono',monospace;
+  margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* Text block header */
+.block.type-text .block-header{background:linear-gradient(135deg,#4ea8ff,#7b68ee)}
+/* Image block header */
+.block.type-image .block-header{background:linear-gradient(135deg,#3ecf8e,#2db77b)}
+
+/* ── ports ── */
+.port{
+  position:absolute;width:12px;height:12px;border-radius:50%;
+  background:#fff;border:2.5px solid currentColor;
+  z-index:5;transition:transform .15s, background .15s;
+  cursor:crosshair;
+}
+.port:hover{transform:scale(1.5);background:currentColor}
+.port-n{top:-6px;left:calc(50% - 6px)}
+.port-s{bottom:-6px;left:calc(50% - 6px)}
+.port-w{left:-6px;top:calc(50% - 6px)}
+.port-e{right:-6px;top:calc(50% - 6px)}
+.type-text .port{color:var(--blue)}
+.type-image .port{color:var(--green)}
+
+/* ══════════════════════════════════════════
+   SVG CONNECTION LINES
+══════════════════════════════════════════ */
+.conn-path{
+  fill:none;stroke:var(--accent);stroke-width:2.5;
+  stroke-dasharray:none;
+  marker-end:url(#arrow);
+}
+.conn-path-temp{
+  fill:none;stroke:var(--yellow);stroke-width:2;
+  stroke-dasharray:8,4;
+}
+
+/* ══════════════════════════════════════════
+   MODAL / DIALOG
+══════════════════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  z-index:500;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+  animation:fade-in .15s ease;
+  user-select:text;
+  -webkit-user-select:text;
+}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  width:540px;max-width:95vw;
+  box-shadow:0 24px 80px rgba(0,0,0,.55);
+  overflow:hidden;
+  animation:slide-up .2s cubic-bezier(.23,1,.32,1);
+}
+@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{
+  padding:18px 22px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.modal-title{font-size:16px;font-weight:800;color:#fff}
+.modal-body{padding:20px 22px}
+.modal-footer{
+  padding:14px 22px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:8px;
+}
+textarea.edit-area{
+  width:100%;min-height:180px;
+  background:var(--ink2);color:#fff;
+  border:1px solid var(--border2);border-radius:9px;
+  padding:14px;font-family:'DM Mono',monospace;font-size:13px;
+  line-height:1.6;resize:vertical;outline:none;
+  transition:border-color .15s;
+  user-select:text;
+  -webkit-user-select:text;
+  pointer-events:auto;
+  cursor:text;
+}
+textarea.edit-area:focus{border-color:var(--blue)}
+
+/* ══════════════════════════════════════════
+   SEQUENCE MODAL
+══════════════════════════════════════════ */
+.seq-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;padding-right:4px}
+.seq-list::-webkit-scrollbar{width:4px}
+.seq-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.seq-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-radius:9px;
+  background:var(--ink2);border:1px solid var(--border);
+  transition:.15s;
+}
+.seq-item:hover{border-color:var(--border2);background:#181828}
+.seq-num{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;font-family:'DM Mono',monospace;
+  flex-shrink:0;
+}
+.seq-icon{font-size:15px;flex-shrink:0}
+.seq-content{font-size:12px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.conn-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px;border-radius:7px;
+  background:rgba(255,77,94,.07);border:1px solid rgba(255,77,94,.18);
+  font-size:11px;font-family:'DM Mono',monospace;color:#ddd;
+  margin-bottom:4px;
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:22px;right:22px;
+  padding:10px 18px;border-radius:10px;
+  background:var(--panel);color:#fff;
+  border:1px solid var(--border2);
+  font-size:12px;font-weight:600;
+  box-shadow:var(--shadow-lg);
+  opacity:0;transform:translateY(8px);
+  transition:all .25s cubic-bezier(.23,1,.32,1);
+  z-index:999;pointer-events:none;
+  display:flex;align-items:center;gap:8px;
+  max-width:300px;
+}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* ══════════════════════════════════════════
+   CONTEXT MENU
+══════════════════════════════════════════ */
+#ctx-menu{
+  position:fixed;z-index:800;
+  background:var(--panel);
+  border:1px solid var(--border2);border-radius:10px;
+  box-shadow:var(--shadow-lg);
+  min-width:180px;overflow:hidden;
+  animation:fade-in .1s ease;
+  display:none;
+}
+.ctx-item{
+  padding:9px 16px;font-size:12px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  color:#ddd;transition:.1s;
+}
+.ctx-item:hover{background:var(--border);color:#fff}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0}
+.ctx-label{padding:7px 16px 2px;font-size:10px;color:var(--muted);letter-spacing:1px}
+
+/* ══════════════════════════════════════════
+   SCROLLBAR CANVAS
+══════════════════════════════════════════ */
+#canvas-wrap{scrollbar-color:#c5c0b5 #e8e6df;scrollbar-width:thin}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE HINT
+══════════════════════════════════════════ */
+#hint-bar{
+  padding:5px 16px;
+  background:var(--ink2);border-top:1px solid var(--border);
+  font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;
+  letter-spacing:.3px;flex-shrink:0;
+  display:flex;align-items:center;gap:18px;
+}
+.hint-key{
+  background:var(--panel);border:1px solid var(--border2);
+  padding:1px 5px;border-radius:4px;font-size:10px;
+}
+
+/* ══════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════ */
+.block-enter{
+  animation:block-pop .3s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes block-pop{
+  from{transform:scale(.7);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ TOOLBAR ═══════ -->
+<div id="toolbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Block Note
+  </div>
+  <div class="sep"></div>
+  <button class="tbtn btn-blue" onclick="addTextBlock()">✦ Text</button>
+  <button class="tbtn btn-green" onclick="addImageBlock()">⬡ Image</button>
+  <div class="sep"></div>
+  <button class="tbtn btn-orange" id="conn-btn" onclick="toggleConnect()">⟶ Connect</button>
+  <button class="tbtn btn-dark" onclick="disconnectSelected()">✂ Disconnect</button>
+  <div class="sep"></div>
+  <button class="tbtn btn-dark" onclick="orderUp()">↑ Up</button>
+  <button class="tbtn btn-dark" onclick="orderDown()">↓ Down</button>
+  <button class="tbtn btn-purple" onclick="showSequence()">≡ Sequence</button>
+  <div class="sep"></div>
+  <button class="tbtn btn-red" onclick="deleteSelected()">⌫ Delete</button>
+  <div class="sep"></div>
+  <button class="tbtn btn-dark" onclick="saveProject()">⬇ Save</button>
+  <button class="tbtn btn-dark" onclick="loadProject()">⬆ Load</button>
+  <div id="status-bar">✓ Ready</div>
+</div>
+
+<!-- ═══════ MAIN ═══════ -->
+<div id="main">
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div id="sidebar-header">Pages</div>
+    <div id="page-list"></div>
+    <div id="sidebar-actions">
+      <button class="side-btn" style="background:var(--green);color:#0a1810" onclick="addPage()">＋ New Page</button>
+      <button class="side-btn" style="background:var(--panel);color:#ccc;border:1px solid var(--border2)" onclick="renamePage()">✏ Rename</button>
+      <button class="side-btn" style="background:rgba(255,77,94,.15);color:var(--accent);border:1px solid rgba(255,77,94,.25)" onclick="deletePage()">✕ Delete Page</button>
+    </div>
+  </div>
+
+  <!-- Canvas Area -->
+  <div id="canvas-wrap"
+    onmousedown="canvasMouseDown(event)"
+    onmousemove="canvasMouseMove(event)"
+    onmouseup="canvasMouseUp(event)"
+    oncontextmenu="canvasRightClick(event)"
+    ondragover="canvasDragOver(event)"
+    ondrop="canvasDrop(event)">
+
+    <svg id="svg-layer" width="3600" height="2800">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent)"/>
+        </marker>
+        <marker id="arrow-temp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="var(--yellow)"/>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g id="conn-group"></g>
+      <g id="temp-conn-group"></g>
+    </svg>
+
+    <div id="block-layer"></div>
+  </div>
+</div>
+
+<!-- Hint bar -->
+<div id="hint-bar">
+  <span>Double-click: edit block</span>
+  <span>Right-click: context menu</span>
+  <span><span class="hint-key">Ctrl+S</span> save</span>
+  <span><span class="hint-key">Del</span> delete selected</span>
+  <span><span class="hint-key">Esc</span> deselect / cancel connect</span>
+</div>
+
+<!-- ═══════ TOAST ═══════ -->
+<div id="toast"></div>
+
+<!-- ═══════ CONTEXT MENU ═══════ -->
+<div id="ctx-menu">
+  <div class="ctx-label" id="ctx-label">BLOCK</div>
+  <div class="ctx-item" onclick="ctxEdit()"><span>✏</span> Edit Content</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="orderUp()"><span>↑</span> Move Up in Sequence</div>
+  <div class="ctx-item" onclick="orderDown()"><span>↓</span> Move Down in Sequence</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="disconnectSelected()"><span>✂</span> Remove Connections</div>
+  <div class="ctx-item" onclick="deleteSelected()" style="color:var(--accent)"><span>✕</span> Delete Block</div>
+</div>
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- Edit text modal -->
+<div id="modal-edit" class="overlay" style="display:none" onclick="if(event.target===this)closeModal('modal-edit')">
+  <div class="modal">
+    <div class="modal-header">
+      <span style="font-size:18px">✏</span>
+      <div class="modal-title">Edit Block</div>
+    </div>
+    <div class="modal-body">
+      <textarea class="edit-area" id="edit-textarea" placeholder="Type your content here…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="tbtn btn-dark" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="tbtn btn-blue" onclick="saveEditModal()">✓ Save  <small style="opacity:.7;font-size:10px">Ctrl+Enter</small></button>
+    </div>
+  </div>
+</div>
+
+<!-- Sequence modal -->
+<div id="modal-seq" class="overlay" style="display:none" onclick="if(event.target===this)closeModal('modal-seq')">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <span style="font-size:18px">≡</span>
+      <div class="modal-title" id="seq-title">Block Sequence</div>
+    </div>
+    <div class="modal-body" id="seq-body"></div>
+    <div class="modal-footer">
+      <button class="tbtn btn-blue" onclick="closeModal('modal-seq')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image picker hidden input -->
+<input type="file" id="img-input" accept="image/*" style="display:none" onchange="imageFileChosen(event)"/>
+<input type="file" id="load-input" accept=".blocknote,.json" style="display:none" onchange="loadFile(event)"/>
+
+<script>
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let pages = [{
+  id: 1, name: 'Page 1', blocks: [], connections: []
+}];
+let curPage = 0;
+let blockIdCounter = 0;
+let pageIdCounter = 1;
+
+let selectedId = null;
+let connectMode = false;
+let connectSrcId = null;
+let pendingImageBlockId = null;
+let dragging = null; // {id, ox, oy}
+let editingId = null;
+let tempConnEnd = {x:0, y:0};
+let tempConnActive = false;
+
+/* ══════════════════════════════════════════
+   PAGE HELPERS
+══════════════════════════════════════════ */
+const page = () => pages[curPage];
+
+function renderSidebar(){
+  const el = document.getElementById('page-list');
+  el.innerHTML = '';
+  pages.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'page-item' + (i===curPage ? ' active' : '');
+    div.innerHTML = `
+      <div class="page-indicator"></div>
+      <div class="page-name">${esc(p.name)}</div>
+      <div class="page-count">${p.blocks.length}</div>`;
+    div.onclick = () => switchPage(i);
+    el.appendChild(div);
+  });
+}
+
+function switchPage(i){
+  curPage = i; selectedId=null; connectSrcId=null; cancelConnect();
+  renderSidebar(); renderAll();
+}
+
+function addPage(){
+  const name = prompt('Page name:', `Page ${pages.length+1}`);
+  if(!name) return;
+  pages.push({id:++pageIdCounter, name, blocks:[], connections:[]});
+  curPage = pages.length-1;
+  renderSidebar(); renderAll();
+  setStatus('Added page: '+name);
+}
+
+function renamePage(){
+  const name = prompt('New name:', page().name);
+  if(!name) return;
+  page().name = name;
+  renderSidebar();
+}
+
+function deletePage(){
+  if(pages.length===1){ toast('Cannot delete the only page!','⚠'); return; }
+  if(!confirm(`Delete "${page().name}" and all its blocks?`)) return;
+  pages.splice(curPage,1);
+  curPage = Math.max(0, curPage-1);
+  selectedId=null; renderSidebar(); renderAll();
+  setStatus('Page deleted');
+}
+
+/* ══════════════════════════════════════════
+   BLOCK HELPERS
+══════════════════════════════════════════ */
+function nextPos(){
+  const n = page().blocks.length;
+  return {x: 80 + (n%4)*50, y: 90 + Math.floor(n/4)*50 + (n%4)*30};
+}
+
+function addTextBlock(){
+  const {x,y} = nextPos();
+  const b = {id:++blockIdCounter, type:'text', content:'New text block ✦\nDouble-click to edit.',
+              x, y, w:230, h:'auto', order: page().blocks.length+1};
+  page().blocks.push(b);
+  renderAll();
+  selectedId = b.id; renderAll();
+  setStatus('Added text block');
+  openEditModal(b.id);
+}
+
+function addImageBlock(){
+  pendingImageBlockId = null;
+  document.getElementById('img-input').click();
+}
+
+function imageFileChosen(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if(pendingImageBlockId){
+      // replace image
+      const b = getBlock(pendingImageBlockId);
+      if(b){ b.imgSrc = ev.target.result; b.content = file.name; renderAll(); }
+      pendingImageBlockId = null;
+    } else {
+      const {x,y} = nextPos();
+      const b = {id:++blockIdCounter, type:'image', content:file.name,
+                  imgSrc: ev.target.result, x, y, w:240, order: page().blocks.length+1};
+      page().blocks.push(b);
+      selectedId = b.id; renderAll();
+      setStatus('Added image: '+file.name);
+    }
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+function getBlock(id){ return page().blocks.find(b=>b.id===id)||null; }
+
+function deleteSelected(){
+  if(!selectedId) return;
+  const p = page();
+  p.connections = p.connections.filter(c=>c.src!==selectedId && c.dst!==selectedId);
+  const idx = p.blocks.findIndex(b=>b.id===selectedId);
+  if(idx!==-1){ p.blocks.splice(idx,1); reassignOrders(); }
+  selectedId = null; renderAll();
+  setStatus('Block deleted');
+}
+
+function reassignOrders(){
+  page().blocks.forEach((b,i)=>b.order=i+1);
+}
+
+function orderUp(){
+  if(!selectedId) return;
+  const p = page(); const idx = p.blocks.findIndex(b=>b.id===selectedId);
+  if(idx>0){
+    [p.blocks[idx],p.blocks[idx-1]]=[p.blocks[idx-1],p.blocks[idx]];
+    reassignOrders(); renderAll();
+  }
+}
+
+function orderDown(){
+  if(!selectedId) return;
+  const p = page(); const idx = p.blocks.findIndex(b=>b.id===selectedId);
+  if(idx<p.blocks.length-1){
+    [p.blocks[idx],p.blocks[idx+1]]=[p.blocks[idx+1],p.blocks[idx]];
+    reassignOrders(); renderAll();
+  }
+}
+
+/* ══════════════════════════════════════════
+   CONNECTIONS
+══════════════════════════════════════════ */
+function toggleConnect(){
+  connectMode = !connectMode;
+  connectSrcId = null; tempConnActive = false;
+  const btn = document.getElementById('conn-btn');
+  if(connectMode){
+    btn.textContent = '⛔ Cancel'; btn.classList.add('active-connect');
+    document.getElementById('canvas-wrap').style.cursor='crosshair';
+    setStatus('Connect mode ON — click source block');
+  } else {
+    btn.textContent = '⟶ Connect'; btn.classList.remove('active-connect');
+    document.getElementById('canvas-wrap').style.cursor='default';
+    setStatus('Connect mode OFF');
+    clearTempConn();
+  }
+  renderAll();
+}
+
+function cancelConnect(){
+  if(!connectMode) return;
+  connectMode=false; connectSrcId=null; tempConnActive=false;
+  const btn = document.getElementById('conn-btn');
+  btn.textContent='⟶ Connect'; btn.classList.remove('active-connect');
+  document.getElementById('canvas-wrap').style.cursor='default';
+  clearTempConn();
+}
+
+function disconnectSelected(){
+  if(!selectedId){ toast('Select a block first','⚠'); return; }
+  const p = page();
+  const before = p.connections.length;
+  p.connections = p.connections.filter(c=>c.src!==selectedId && c.dst!==selectedId);
+  renderAll();
+  setStatus(`Removed ${before-p.connections.length} connection(s)`);
+}
+
+/* ══════════════════════════════════════════
+   RENDER — full redraw
+══════════════════════════════════════════ */
+function renderAll(){
+  renderBlocks();
+  renderConnections();
+  renderSidebar();
+}
+
+function renderBlocks(){
+  const layer = document.getElementById('block-layer');
+  layer.innerHTML = '';
+  page().blocks.forEach(b=>layer.appendChild(createBlockEl(b)));
+}
+
+function createBlockEl(b){
+  const div = document.createElement('div');
+  div.className = `block type-${b.type}${b.id===selectedId?' selected':''}${b.id===connectSrcId?' connect-src':''}`;
+  div.id = `block-${b.id}`;
+  div.style.cssText = `left:${b.x}px;top:${b.y}px;width:${b.w}px`;
+
+  // Header
+  const headerColor = b.type==='text'
+    ? 'background:linear-gradient(135deg,#4ea8ff,#7b68ee)'
+    : 'background:linear-gradient(135deg,#3ecf8e,#2db77b)';
+  const icon = b.type==='text' ? '✦' : '⬡';
+
+  let bodyHTML = '';
+  if(b.type==='text'){
+    bodyHTML = `<div class="block-text">${esc(b.content)}</div>`;
+  } else {
+    const imgTag = b.imgSrc ? `<img src="${b.imgSrc}" alt="img"/>` : `<div style="color:#aaa;font-size:12px">⬡ No Image</div>`;
+    bodyHTML = `
+      <div class="block-img-wrap">${imgTag}</div>
+      <div class="block-img-name">${esc(b.content)}</div>`;
+  }
+
+  div.innerHTML = `
+    <div class="block-header" style="${headerColor}">
+      <span class="block-type-icon">${icon}</span>
+      <span class="block-title">${esc(b.type==='text' ? b.content.split('\n')[0] : b.content)}</span>
+      <span class="block-order">${b.order}</span>
+    </div>
+    <div class="block-body">${bodyHTML}</div>
+    <div class="port port-n" data-port="n" data-id="${b.id}"></div>
+    <div class="port port-s" data-port="s" data-id="${b.id}"></div>
+    <div class="port port-w" data-port="w" data-id="${b.id}"></div>
+    <div class="port port-e" data-port="e" data-id="${b.id}"></div>`;
+
+  // Events
+  div.addEventListener('mousedown', e=>blockMouseDown(e, b.id));
+  div.addEventListener('dblclick',  e=>blockDblClick(e, b.id));
+  div.addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation(); showCtxMenu(e, b.id); });
+
+  // Port click for connect mode
+  div.querySelectorAll('.port').forEach(p=>{
+    p.addEventListener('mousedown', e=>portMouseDown(e, b.id));
+  });
+
+  return div;
+}
+
+/* ── Connections SVG ── */
+function renderConnections(){
+  const g = document.getElementById('conn-group');
+  g.innerHTML = '';
+  const idMap = Object.fromEntries(page().blocks.map(b=>[b.id,b]));
+
+  page().connections.forEach(conn=>{
+    const src = idMap[conn.src]; const dst = idMap[conn.dst];
+    if(!src||!dst) return;
+
+    const [x1,y1] = blockCenter(src,'s');
+    const [x2,y2] = blockCenter(dst,'n');
+    const path = bezier(x1,y1,x2,y2);
+
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', path);
+    p.setAttribute('class','conn-path');
+
+    // label at midpoint
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    const fg = document.createElementNS('http://www.w3.org/2000/svg','g');
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',mx); circle.setAttribute('cy',my);
+    circle.setAttribute('r',11); circle.setAttribute('fill','var(--accent)');
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',mx); txt.setAttribute('y',my+4);
+    txt.setAttribute('text-anchor','middle');
+    txt.setAttribute('font-size','9');
+    txt.setAttribute('font-family','DM Mono, monospace');
+    txt.setAttribute('font-weight','700');
+    txt.setAttribute('fill','white');
+    txt.textContent = `${src.order}→${dst.order}`;
+
+    fg.appendChild(circle); fg.appendChild(txt);
+    g.appendChild(p); g.appendChild(fg);
+  });
+}
+
+function blockCenter(b, side){
+  const w = b.w, h = 120; // approximate height
+  const el = document.getElementById(`block-${b.id}`);
+  const ah = el ? el.offsetHeight : h;
+  if(side==='n') return [b.x+w/2, b.y];
+  if(side==='s') return [b.x+w/2, b.y+ah];
+  if(side==='w') return [b.x, b.y+ah/2];
+  if(side==='e') return [b.x+w, b.y+ah/2];
+  return [b.x+w/2, b.y+ah/2];
+}
+
+function bezier(x1,y1,x2,y2){
+  const dy = Math.max(Math.abs(y2-y1)*.5, 60);
+  return `M ${x1} ${y1} C ${x1} ${y1+dy}, ${x2} ${y2-dy}, ${x2} ${y2}`;
+}
+
+function clearTempConn(){
+  document.getElementById('temp-conn-group').innerHTML='';
+}
+
+function drawTempConn(x1,y1,x2,y2){
+  const g = document.getElementById('temp-conn-group');
+  g.innerHTML='';
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const dy = Math.max(Math.abs(y2-y1)*.5, 50);
+  path.setAttribute('d',`M ${x1} ${y1} C ${x1} ${y1+dy}, ${x2} ${y2-dy}, ${x2} ${y2}`);
+  path.setAttribute('stroke','var(--yellow)');
+  path.setAttribute('stroke-width','2');
+  path.setAttribute('fill','none');
+  path.setAttribute('stroke-dasharray','8,4');
+  path.setAttribute('marker-end','url(#arrow-temp)');
+  g.appendChild(path);
+}
+
+/* ══════════════════════════════════════════
+   MOUSE EVENTS
+══════════════════════════════════════════ */
+function getCanvasPos(e){
+  const wrap = document.getElementById('canvas-wrap');
+  const rect = wrap.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left + wrap.scrollLeft,
+    y: e.clientY - rect.top  + wrap.scrollTop
+  };
+}
+
+function blockMouseDown(e, id){
+  if(e.button!==0) return;
+  e.stopPropagation();
+
+  if(connectMode){
+    if(!connectSrcId){
+      connectSrcId=id; selectedId=id;
+      tempConnActive=true;
+      // update classes without full re-render so dblclick still works
+      updateBlockClasses();
+      renderConnections();
+      setStatus('Source set — click destination block');
+    } else if(id!==connectSrcId){
+      const exists = page().connections.some(c=>c.src===connectSrcId&&c.dst===id);
+      if(!exists) page().connections.push({src:connectSrcId, dst:id});
+      const src = getBlock(connectSrcId);
+      const dst = getBlock(id);
+      setStatus(exists ? 'Connection already exists' : `Connected #${src?.order} → #${dst?.order}`);
+      connectSrcId=null; tempConnActive=false; clearTempConn();
+      renderAll();
+    }
+    return;
+  }
+
+  // Update selection without destroying DOM (preserves dblclick)
+  const prev = selectedId;
+  selectedId = id;
+  if(prev !== id) updateBlockClasses();
+
+  const b=getBlock(id);
+  const pos=getCanvasPos(e);
+  dragging={id, ox:pos.x-b.x, oy:pos.y-b.y};
+  document.getElementById('canvas-wrap').style.cursor='grabbing';
+}
+
+// Update only CSS classes — does NOT destroy/recreate block elements
+function updateBlockClasses(){
+  page().blocks.forEach(b=>{
+    const el = document.getElementById(`block-${b.id}`);
+    if(!el) return;
+    el.className = `block type-${b.type}${b.id===selectedId?' selected':''}${b.id===connectSrcId?' connect-src':''}`;
+  });
+  renderSidebar();
+}
+
+function portMouseDown(e, id){
+  if(!connectMode){ e.stopPropagation(); return; }
+  blockMouseDown(e, id);
+}
+
+function canvasMouseDown(e){
+  if(e.button!==0) return;
+  hideCtxMenu();
+  if(connectMode) return;
+  if(e.target===document.getElementById('canvas-wrap') ||
+     e.target===document.getElementById('block-layer')||
+     e.target===document.getElementById('svg-layer')){
+    selectedId=null; updateBlockClasses();
+  }
+}
+
+function canvasMouseMove(e){
+  const pos = getCanvasPos(e);
+  if(dragging && !connectMode){
+    const b = getBlock(dragging.id);
+    if(b){
+      b.x = Math.max(0, pos.x - dragging.ox);
+      b.y = Math.max(0, pos.y - dragging.oy);
+      const el = document.getElementById(`block-${b.id}`);
+      if(el){ el.style.left=b.x+'px'; el.style.top=b.y+'px'; }
+      renderConnections();
+    }
+  }
+  if(connectMode && connectSrcId && tempConnActive){
+    const src = getBlock(connectSrcId);
+    if(src){
+      const [x1,y1] = blockCenter(src,'s');
+      drawTempConn(x1,y1,pos.x,pos.y);
+    }
+  }
+}
+
+function canvasMouseUp(e){
+  dragging=null;
+  document.getElementById('canvas-wrap').style.cursor = connectMode?'crosshair':'default';
+}
+
+function canvasRightClick(e){
+  e.preventDefault();
+  if(selectedId){ showCtxMenu(e, selectedId); }
+}
+
+function canvasDragOver(e){ e.preventDefault(); }
+function canvasDrop(e){
+  e.preventDefault();
+  const files = e.dataTransfer?.files;
+  if(!files||files.length===0) return;
+  const f = files[0];
+  if(!f.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const pos = getCanvasPos(e);
+    const b = {id:++blockIdCounter, type:'image', content:f.name,
+                imgSrc:ev.target.result, x:pos.x-120, y:pos.y-60, w:240,
+                order:page().blocks.length+1};
+    page().blocks.push(b);
+    selectedId=b.id; renderAll();
+    setStatus('Dropped image: '+f.name);
+  };
+  reader.readAsDataURL(f);
+}
+
+/* ══════════════════════════════════════════
+   KEYBOARD
+══════════════════════════════════════════ */
+document.addEventListener('keydown', e=>{
+  if(e.ctrlKey && e.key==='s'){ e.preventDefault(); saveProject(); return; }
+  if(e.key==='Escape'){ cancelConnect(); selectedId=null; renderAll(); return; }
+  if((e.key==='Delete'||e.key==='Backspace') && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){
+    deleteSelected();
+  }
+});
+
+/* ══════════════════════════════════════════
+   EDIT MODAL
+══════════════════════════════════════════ */
+function openEditModal(id){
+  editingId = id;
+  const b = getBlock(id);
+  if(!b) return;
+  const ta = document.getElementById('edit-textarea');
+  ta.value = b.content;
+  document.getElementById('modal-edit').style.display='flex';
+  // slightly longer delay ensures modal is rendered before we focus
+  setTimeout(()=>{ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 120);
+}
+
+function blockDblClick(e, id){
+  e.stopPropagation();
+  e.preventDefault();
+  dragging = null; // cancel drag started on first click
+  const b = getBlock(id);
+  if(!b) return;
+  if(b.type==='text') openEditModal(id);
+  else {
+    pendingImageBlockId = id;
+    document.getElementById('img-input').click();
+  }
+}
+
+function saveEditModal(){
+  const b = getBlock(editingId);
+  if(b){
+    b.content = document.getElementById('edit-textarea').value.trim() || b.content;
+    renderAll();
+    setStatus('Block updated');
+  }
+  closeModal('modal-edit');
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.ctrlKey && e.key==='Enter'){
+    if(document.getElementById('modal-edit').style.display==='flex') saveEditModal();
+  }
+});
+
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+/* ══════════════════════════════════════════
+   SEQUENCE MODAL
+══════════════════════════════════════════ */
+function showSequence(){
+  const p = page();
+  document.getElementById('seq-title').textContent = `Sequence — ${p.name}`;
+  const body = document.getElementById('seq-body');
+
+  const sorted = [...p.blocks].sort((a,b)=>a.order-b.order);
+
+  let html = '<div class="seq-list">';
+  if(!sorted.length){
+    html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px">No blocks on this page.</div>';
+  } else {
+    sorted.forEach(b=>{
+      const icon = b.type==='text'?'✦':'⬡';
+      const colors = b.type==='text'?'background:rgba(78,168,255,.15);color:var(--blue)':'background:rgba(62,207,142,.15);color:var(--green)';
+      const preview = b.content.replace(/\n/g,' ').slice(0,52)+(b.content.length>52?'…':'');
+      html += `<div class="seq-item">
+        <div class="seq-num" style="${colors}">${b.order}</div>
+        <span class="seq-icon">${icon}</span>
+        <span class="seq-content">${esc(preview)}</span>
+      </div>`;
+    });
+  }
+  html += '</div>';
+
+  if(p.connections.length){
+    const idMap = Object.fromEntries(p.blocks.map(b=>[b.id,b]));
+    html += '<div style="margin-top:18px;font-size:10px;letter-spacing:1.4px;color:var(--muted);margin-bottom:8px">CONNECTIONS</div>';
+    p.connections.forEach(c=>{
+      const src = idMap[c.src]; const dst = idMap[c.dst];
+      if(src&&dst){
+        html += `<div class="conn-item">
+          <span style="color:var(--accent)">⟶</span>
+          <span>#${src.order} ${esc(src.content.split('\n')[0].slice(0,20))}…</span>
+          <span style="color:var(--muted)">→</span>
+          <span>#${dst.order} ${esc(dst.content.split('\n')[0].slice(0,20))}…</span>
+        </div>`;
+      }
+    });
+  }
+
+  body.innerHTML = html;
+  document.getElementById('modal-seq').style.display='flex';
+}
+
+/* ══════════════════════════════════════════
+   CONTEXT MENU
+══════════════════════════════════════════ */
+function showCtxMenu(e, id){
+  selectedId=id; renderAll();
+  const b=getBlock(id);
+  const m=document.getElementById('ctx-menu');
+  document.getElementById('ctx-label').textContent=`Block #${b.order}: ${b.content.slice(0,20)}…`;
+  m.style.display='block';
+  m.style.left = Math.min(e.clientX, window.innerWidth-200)+'px';
+  m.style.top  = Math.min(e.clientY, window.innerHeight-220)+'px';
+}
+
+function hideCtxMenu(){ document.getElementById('ctx-menu').style.display='none'; }
+document.addEventListener('click', hideCtxMenu);
+
+function ctxEdit(){
+  if(!selectedId) return;
+  const b=getBlock(selectedId);
+  if(b.type==='text') openEditModal(selectedId);
+  else { pendingImageBlockId=selectedId; document.getElementById('img-input').click(); }
+}
+
+/* ══════════════════════════════════════════
+   SAVE / LOAD
+══════════════════════════════════════════ */
+function saveProject(){
+  const data = JSON.stringify({version:'1.1', pages}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `block_note_${Date.now()}.blocknote`;
+  a.click();
+  setStatus('✓ Project saved');
+  toast('Project saved!', '💾');
+}
+
+function loadProject(){
+  document.getElementById('load-input').click();
+}
+
+function loadFile(e){
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      pages = data.pages||[{id:1,name:'Page 1',blocks:[],connections:[]}];
+      blockIdCounter = Math.max(0,...pages.flatMap(p=>p.blocks.map(b=>b.id)));
+      pageIdCounter = Math.max(0,...pages.map(p=>p.id));
+      curPage=0; selectedId=null;
+      renderSidebar(); renderAll();
+      setStatus('✓ Project loaded: '+f.name);
+      toast('Project loaded!','📂');
+    } catch(err){ toast('Failed to load: '+err.message,'⚠'); }
+  };
+  reader.readAsText(f);
+  e.target.value='';
+}
+
+/* ══════════════════════════════════════════
+   STATUS / TOAST
+══════════════════════════════════════════ */
+function setStatus(msg){
+  document.getElementById('status-bar').textContent = msg;
+}
+let toastTimer;
+function toast(msg, icon='✓'){
+  const el = document.getElementById('toast');
+  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+/* ══════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════ */
+function esc(s=''){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+renderSidebar();
+renderAll();
+
+// Demo block
+setTimeout(()=>{
+  if(page().blocks.length===0){
+    const b1 = {id:++blockIdCounter, type:'text',
+      content:'Welcome to Block Note ✦\nDouble-click to edit.\nDrag to move.',
+      x:100, y:90, w:230, order:1};
+    const b2 = {id:++blockIdCounter, type:'text',
+      content:'Use ⟶ Connect to link blocks together.',
+      x:420, y:90, w:230, order:2};
+    const b3 = {id:++blockIdCounter, type:'text',
+      content:'Drag & Drop an image file here to add image blocks!',
+      x:260, y:280, w:230, order:3};
+    page().blocks.push(b1, b2, b3);
+    page().connections.push({src:b1.id, dst:b2.id});
+    page().connections.push({src:b2.id, dst:b3.id});
+    selectedId = null;
+    renderAll();
+  }
+}, 0);
+</script>
+</body>
+</html>
