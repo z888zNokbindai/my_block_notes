@@ -595,6 +595,7 @@ let pageIdCounter = 1;
 let selectedId = null;
 let connectMode = false;
 let connectSrcId = null;
+let connectSrcPort = 's'; // which port the source connection starts from
 let pendingImageBlockId = null;
 let dragging = null; // {id, ox, oy}
 let editingId = null;
@@ -754,7 +755,7 @@ function toggleConnect(){
 
 function cancelConnect(){
   if(!connectMode) return;
-  connectMode=false; connectSrcId=null; tempConnActive=false;
+  connectMode=false; connectSrcId=null; connectSrcPort='s'; tempConnActive=false;
   const btn = document.getElementById('conn-btn');
   btn.textContent='⟶ Connect'; btn.classList.remove('active-connect');
   document.getElementById('canvas-wrap').style.cursor='default';
@@ -824,9 +825,13 @@ function createBlockEl(b){
   div.addEventListener('dblclick',  e=>blockDblClick(e, b.id));
   div.addEventListener('contextmenu', e=>{ e.preventDefault(); e.stopPropagation(); showCtxMenu(e, b.id); });
 
-  // Port click for connect mode
-  div.querySelectorAll('.port').forEach(p=>{
-    p.addEventListener('mousedown', e=>portMouseDown(e, b.id));
+  // Port click for connect mode — pass which port side was clicked
+  div.querySelectorAll('.port').forEach(portEl=>{
+    portEl.addEventListener('mousedown', e=>{
+      e.stopPropagation();
+      const side = portEl.dataset.port; // 'n','s','e','w'
+      portMouseDown(e, b.id, side);
+    });
   });
 
   return div;
@@ -842,9 +847,11 @@ function renderConnections(){
     const src = idMap[conn.src]; const dst = idMap[conn.dst];
     if(!src||!dst) return;
 
-    const [x1,y1] = blockCenter(src,'s');
-    const [x2,y2] = blockCenter(dst,'n');
-    const path = bezier(x1,y1,x2,y2);
+    const sp = conn.src_port || 's';
+    const dp = conn.dst_port || 'n';
+    const [x1,y1] = blockPort(src, sp);
+    const [x2,y2] = blockPort(dst, dp);
+    const path = bezierForPorts(x1,y1,sp, x2,y2,dp);
 
     const p = document.createElementNS('http://www.w3.org/2000/svg','path');
     p.setAttribute('d', path);
@@ -872,32 +879,43 @@ function renderConnections(){
   });
 }
 
-function blockCenter(b, side){
-  const w = b.w, h = 120; // approximate height
+// Get exact pixel position of a port on a block
+function blockPort(b, side){
   const el = document.getElementById(`block-${b.id}`);
-  const ah = el ? el.offsetHeight : h;
-  if(side==='n') return [b.x+w/2, b.y];
-  if(side==='s') return [b.x+w/2, b.y+ah];
-  if(side==='w') return [b.x, b.y+ah/2];
-  if(side==='e') return [b.x+w, b.y+ah/2];
-  return [b.x+w/2, b.y+ah/2];
+  const ah = el ? el.offsetHeight : 120;
+  const w = b.w;
+  if(side==='n') return [b.x + w/2,    b.y];
+  if(side==='s') return [b.x + w/2,    b.y + ah];
+  if(side==='w') return [b.x,           b.y + ah/2];
+  if(side==='e') return [b.x + w,       b.y + ah/2];
+  return [b.x + w/2, b.y + ah/2];
 }
 
-function bezier(x1,y1,x2,y2){
-  const dy = Math.max(Math.abs(y2-y1)*.5, 60);
-  return `M ${x1} ${y1} C ${x1} ${y1+dy}, ${x2} ${y2-dy}, ${x2} ${y2}`;
+// Bezier control points that respect port direction
+function bezierForPorts(x1,y1,sp, x2,y2,dp){
+  const dist = Math.max(Math.sqrt((x2-x1)**2+(y2-y1)**2)*0.45, 60);
+  const dir = {n:[0,-1], s:[0,1], e:[1,0], w:[-1,0]};
+  const [d1x,d1y] = dir[sp]||[0,1];
+  const [d2x,d2y] = dir[dp]||[0,-1];
+  const cp1x = x1 + d1x*dist, cp1y = y1 + d1y*dist;
+  const cp2x = x2 + d2x*dist, cp2y = y2 + d2y*dist;
+  return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
 }
 
 function clearTempConn(){
   document.getElementById('temp-conn-group').innerHTML='';
 }
 
-function drawTempConn(x1,y1,x2,y2){
+function drawTempConn(x1,y1,x2,y2, srcPort='s'){
   const g = document.getElementById('temp-conn-group');
   g.innerHTML='';
   const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-  const dy = Math.max(Math.abs(y2-y1)*.5, 50);
-  path.setAttribute('d',`M ${x1} ${y1} C ${x1} ${y1+dy}, ${x2} ${y2-dy}, ${x2} ${y2}`);
+  const dist = Math.max(Math.sqrt((x2-x1)**2+(y2-y1)**2)*0.45, 60);
+  const dir = {n:[0,-1], s:[0,1], e:[1,0], w:[-1,0]};
+  const [d1x,d1y] = dir[srcPort]||[0,1];
+  const cp1x = x1+d1x*dist, cp1y = y1+d1y*dist;
+  const cp2x = x2, cp2y = y2-dist;
+  path.setAttribute('d',`M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
   path.setAttribute('stroke','var(--yellow)');
   path.setAttribute('stroke-width','2');
   path.setAttribute('fill','none');
@@ -923,21 +941,25 @@ function blockMouseDown(e, id){
   e.stopPropagation();
 
   if(connectMode){
+    // Clicking block body (not a port) — auto-pick port based on relative position
+    const b = getBlock(id);
+    const pos = getCanvasPos(e);
+    const autoPort = autoPickPort(b, pos.x, pos.y);
+
     if(!connectSrcId){
-      connectSrcId=id; selectedId=id;
-      tempConnActive=true;
-      // update classes without full re-render so dblclick still works
+      connectSrcId = id;
+      connectSrcPort = autoPort;
+      selectedId = id;
+      tempConnActive = true;
       updateBlockClasses();
-      renderConnections();
-      setStatus('Source set — click destination block');
-    } else if(id!==connectSrcId){
+      setStatus(`Source set — click destination block or port`);
+    } else if(id !== connectSrcId){
       const exists = page().connections.some(c=>c.src===connectSrcId&&c.dst===id);
-      if(!exists) page().connections.push({src:connectSrcId, dst:id});
-      const src = getBlock(connectSrcId);
-      const dst = getBlock(id);
-      setStatus(exists ? 'Connection already exists' : `Connected #${src?.order} → #${dst?.order}`);
-      connectSrcId=null; tempConnActive=false; clearTempConn();
-      renderAll();
+      if(!exists) page().connections.push({src:connectSrcId, src_port:connectSrcPort, dst:id, dst_port:autoPort});
+      const src = getBlock(connectSrcId); const dst = getBlock(id);
+      setStatus(exists?'Connection already exists':`Connected #${src?.order} → #${dst?.order}`);
+      connectSrcId=null; connectSrcPort='s'; tempConnActive=false; clearTempConn();
+      renderConnections(); updateBlockClasses();
     }
     return;
   }
@@ -947,10 +969,21 @@ function blockMouseDown(e, id){
   selectedId = id;
   if(prev !== id) updateBlockClasses();
 
-  const b=getBlock(id);
-  const pos=getCanvasPos(e);
-  dragging={id, ox:pos.x-b.x, oy:pos.y-b.y};
-  document.getElementById('canvas-wrap').style.cursor='grabbing';
+  const b = getBlock(id);
+  const pos = getCanvasPos(e);
+  dragging = {id, ox: pos.x - b.x, oy: pos.y - b.y};
+  document.getElementById('canvas-wrap').style.cursor = 'grabbing';
+}
+
+// Auto-pick the nearest port side given a click position on a block
+function autoPickPort(b, cx, cy){
+  const el = document.getElementById(`block-${b.id}`);
+  const ah = el ? el.offsetHeight : 120;
+  const bCx = b.x + b.w/2, bCy = b.y + ah/2;
+  const dx = cx - bCx, dy = cy - bCy;
+  // Whichever axis dominates decides the port
+  if(Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'e' : 'w';
+  return dy > 0 ? 's' : 'n';
 }
 
 // Update only CSS classes — does NOT destroy/recreate block elements
@@ -963,9 +996,29 @@ function updateBlockClasses(){
   renderSidebar();
 }
 
-function portMouseDown(e, id){
-  if(!connectMode){ e.stopPropagation(); return; }
-  blockMouseDown(e, id);
+function portMouseDown(e, id, side='s'){
+  e.stopPropagation();
+  if(!connectMode){
+    // In non-connect mode, port click still selects the block but doesn't drag
+    selectedId = id; updateBlockClasses();
+    return;
+  }
+  // Connect mode: side is the port being clicked
+  if(!connectSrcId){
+    connectSrcId = id;
+    connectSrcPort = side;
+    selectedId = id;
+    tempConnActive = true;
+    updateBlockClasses();
+    setStatus(`Source port [${side}] set — click a destination port or block`);
+  } else if(id !== connectSrcId){
+    const exists = page().connections.some(c=>c.src===connectSrcId&&c.dst===id);
+    if(!exists) page().connections.push({src:connectSrcId, src_port:connectSrcPort, dst:id, dst_port:side});
+    const src = getBlock(connectSrcId); const dst = getBlock(id);
+    setStatus(exists?'Connection already exists':`Connected #${src?.order}[${connectSrcPort}] → #${dst?.order}[${side}]`);
+    connectSrcId=null; connectSrcPort='s'; tempConnActive=false; clearTempConn();
+    renderConnections(); updateBlockClasses();
+  }
 }
 
 function canvasMouseDown(e){
@@ -994,8 +1047,8 @@ function canvasMouseMove(e){
   if(connectMode && connectSrcId && tempConnActive){
     const src = getBlock(connectSrcId);
     if(src){
-      const [x1,y1] = blockCenter(src,'s');
-      drawTempConn(x1,y1,pos.x,pos.y);
+      const [x1,y1] = blockPort(src, connectSrcPort);
+      drawTempConn(x1,y1,pos.x,pos.y, connectSrcPort);
     }
   }
 }
